@@ -11,7 +11,7 @@ Password managers are an important piece of the solution, and can be very conven
 
 Even with a password vault, Wherever it is stored, it must of course be encrypted, and some kind of password or PIN must be used to unlock it.  However, in many use cases, even on trusted hardware, these credentials are at risk of interception.  Consider a hardware or software key logger, or a security camera recording you enter your password or PIN or pattern.
 
-There are, of course, many attempts to solve these problems, which I will not bother to enumerate here, but the one which comes closest is the OnlyKey, by CryptoTrust, LLC.  This hardware device is the conceptual foundation of the currently proposed device, adding some critical missing features.
+There are, of course, many attempts to solve these problems, which I will not bother to enumerate here, but the one which comes closest is the [OnlyKey](https://onlykey.io/), by [CryptoTrust, LLC](https://crp.to/).  This hardware device is the conceptual foundation of the currently proposed device, adding some critical missing features.
 
 ## The Device
 
