@@ -51,11 +51,19 @@ There is much existing excellent open source software that we can build off, per
 
 > You're on the road and sit down to your laptop at a cafe, you open it up and plug in your Key Master with a regular USB cable.  Under your coat or your hat you type in your pattern by touch on the buttons and the device unlocks.  It sees that you are on a trusted device, and shows you appropriate options, including typing in your password and logging into the machine, or authenticating as a smart card.  Once logged in, it mounts your password vault and loads your password manager, conveniently entering your passwords into websites with that program's plugins.
 
+---
+
 > When you're back at the hotel, you again plug your Key Master into your laptop and unlock it, perhaps under the covers if you're paranoid of cameras.  You log into Netflix easily via the browser plugin, but your password has expired and it insists that you must change it.  You autogenerate a new password in your password manager and save it to the vault on your key.  Your backup Key Master is at home, plugged into your computer, or perhaps into a network port in your basement.  Maybe you even have a safe with an ethernet port inside it.  You have your laptop configured to establish an encrypted tunnel to your backup key at home, keeping it in sync with your active key.  Perhaps in addition to your home backup key, you pull your backup travel key out of your hat and plug it in after changing your password, and it automatically syncs with the others.  The LED light on it and e-ink display confirm that it's in sync, and you tuck it back in your hat.
+
+---
 
 > Even your phone can be authenticated by the Master Key, which is configured to allow only a limited set of your passwords on this device.  You've configured your phone password manager to cache a subset of these available passwords in memory, so that you don't have to always have your Key Master plugged in, unless you want to access your bank account.  So as soon as you've unlocked the phone, you unplug the key from your phone, and use it as normal, until the screen locks at your configured interval and it needs to be unlocked again.
 
+---
+
 > You're at a friends house using their computer.  You plug your Master Key in and unlock it under the table, and since this is not a configured trusted device, it does not mount the storage drive with your password vault.  Instead, you are presented with the passwords you might need, listed on the menu on the device, which you can scroll through and select the ones you want.  They are then auto-typed according to the pattern stored with that entry in your password vault.
+
+---
 
 > You work for a company with extremely high security, with smart-card readers at the entrances.  When you arrive, you plug your company-issued Key Master into the smart-card reader with an adapter cable you cary for the purpose, and enter your pin on the device in the provided box or under your coat.  Guests are given smart-cards, which must be unlocked with a code typed into buttons on the card itself, these have only a single key on them, but you use your Master Key for much more.  Of course the card reader has a box for the hand around it to hide the guest's code as they enter it.  When you get to your desk, you plug your key into your workstation and unlock it under your desk.  Your workstation is recognized, the smart card protocol is used to authenticate automatically and you're logged in.  Your password manager has even loaded your SSH keys into the agent and you're able to SSH without any hassle, without the keys ever being written to your workstation.  When you get up to use the restroom, you're expected to unplug the device and take it with you.  As soon as the device is unplugged, your workstation is configured to immediately lock and wipe your passwords from memory.
 
