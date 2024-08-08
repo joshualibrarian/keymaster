@@ -15,17 +15,17 @@ There are, of course, many attempts to solve these problems, which I will not bo
 
 ## The Device
 
-The proposal in question is a relatively simple open source hardware device, small and flat, approximately one inches by two inches, as rugged and waterproof as possible.  Internally, the device is relatively simple, including block devices, encryption chips, a powerful enough processor to run it all, and some solid firmware.  It consists of the following features:
+The proposal in question is a relatively simple open source hardware device, small and flat, approximately one inches by two inches, as rugged and waterproof as possible.  Internally, the device is relatively simple, including block devices, encryption chips, a powerful enough processor to run it all, and some solid firmware.  Externally it has the following main features:
 
-### a twelve-key pad of capacitance buttons to enter the PIN pattern
+- a twelve-key pad of capacitance buttons to enter the PIN pattern
 
 Similar to the six-key pad on the OnlyKey, this device would have capacitance buttons, but more of them, allowing for a much wider variety of codes (which can also be thought of as patterns).  While this does make the unit slightly larger, I think this is a good thing, making it a bit easier to hold and use, and harder to misplace.
 
-### an e-ink display
+- an e-ink display
 
 Once the user has unlocked the device with their PIN, there are many potential actions you might wish to take.  The buttons can be used to navigate these options, but the display, located on the opposite side of the device from the buttons, is used to indicate which buttons will do what actions.  It can also be used to do some configuration, show user data, display a bar-code, or whatever else.
 
-### a USB-C port (*female*)
+- a USB-C port (*female*)
 
 This essential feature is intended to solve the problem of visibility when typing in your PIN.  Rather than a plug (male), which you plug in directly to a computer, the female plug is intended to always be connected via a cable, like a phone.  This way, you have more flexibility to type your PIN in a more secure arrangement, such as inside your coat, under your shirt, in your pocket, etc.
 
