@@ -7,7 +7,7 @@ Personal Hardware Password Vault / Security Key
 
 Digital authentication is increasingly important today, and changing fast.  We are each required to maintain various credentials, keys, certificates, question/answer pairs, and more, both personal, and for various organizations, to the point where some kind of management tool is absolutely essential.
 
-Password managers are an important piece of the solution, and can be very convenient with plugins and graphical user interfaces, but sharing a password vault across devices can be inconvenient and introduce attack vectors.  Furthermore, on public or untrusted hosts without access to install software, one may also need to authenticate or access some passwords as securely as possible.
+Password managers are an important piece of the solution, and can be very convenient with plugins and graphical user interfaces, but sharing a password vault across devices can be inconvenient and introduce attack vectors, or use some service where a third party is being trusted with all your passwords.  Furthermore, on public or untrusted hosts without access to install software, one may also need to authenticate or access some passwords as securely as possible.
 
 Even with a password vault, wherever it is stored, it must of course be encrypted, and some kind of password or PIN must be used to unlock it.  However, in many use cases, even on trusted hardware, these credentials are at risk of interception.  Consider a hardware or software keylogger, or a security camera recording you enter your PIN.
 
