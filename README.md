@@ -73,6 +73,4 @@ When you get to your desk, you plug your Key Master into your workstation and un
 
 ## Summary
 
-Herein I have presented a summary of such a device which would be a much-needed foundation to an accessible digital security for individuals and organizations alike, simplifying and securing peoples digital lives, a need which no other device available today quite meets, unifying authentication needs all sources from websites, FIDO keys, SSH keys, GPG keys, smart cards, and about everything else. 
-
-Such a device as described could be a much-needed foundation to an accessible digital security for individuals and organizations alike, it's very design intentionally fostering good security practices and habits.
+Herein I have presented a summary of such a device which would be a much-needed foundation to an accessible digital security for individuals and organizations alike, simplifying and securing peoples digital lives, a need which no other device available today quite meets, unifying authentication needs all sources from websites, FIDO keys, SSH keys, GPG keys, smart cards, and about everything else, while intentionally fostering good security practices and habits.
