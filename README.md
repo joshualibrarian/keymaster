@@ -15,7 +15,7 @@ There are, of course, many attempts to solve these problems, which I will not bo
 
 ## The Device
 
-The proposal in question is an open source hardware device, small and flat, approximately one inches by two inches, as rugged and waterproof as possible.  Internally, the device is relatively simple, including storage devices, encryption chips, a powerful enough processor to run it all, and some robust firmware.  Externally it has the following main features:
+The proposal in question is of an open source hardware device, small and flat, approximately one inches by two inches, as rugged and waterproof as possible.  Externally it has the following main features:
 
 - a twelve-key pad of capacitance buttons
 
@@ -25,21 +25,25 @@ Similar to the six-key pad on the OnlyKey, this device would have capacitance bu
 
 Once the user has unlocked the device with their PIN, there are many potential actions you might wish to take.  The buttons can be used to navigate these options, while the display, located on the opposite side of the device from the buttons, is used to indicate which buttons will do what actions.  It can also be used to do some configuration, show user data, display a bar-code, or whatever else.  The LED is used in conjunction with the display to indicate various states in various modes.
 
+Though it adds significant complications to the design, one additional feature that could be implemented (perhaps in a subsequent version) would be a fingerprint scanner, which could occupy the surface of the display, acting as an additional factor to the PIN entry.
+
 - a USB-C port (*female*)
 
 This essential feature is intended to solve the problem of visibility when typing in your PIN.  Rather than a plug (male), which you plug in directly to a computer, the female port is intended to always be connected via a regular USB cable.  This way, you have more flexibility to type your PIN in a more secure arrangement, such as inside your coat, under your shirt, in your pocket, etc.
 
 This also simplifies the use of adapters, allowing this device to connect to whatever devices you have, such as workstations, phones, or even have adapters for smart-card readers or network ports.  In either case, of course even with a plug, extension USB cords are an option, but this clarifies the intention and allows the use of common cords.
 
+Internally, this device will need at least a robust USB controller, capable of operating as several USB device classes including HID (emulating a keyboard to type in passwords or a FIDO security key), smart card reader, mass storage, and network device.  A small storage chip (< 1GB), and appropriate encryption hardware are also needed.
+
+To keep this device as simple and secure as possible, no wireless communication options are included, so it's usable only with hard connections.  This is intentional, since many devices this will be plugged into already include such capabilities (such as mobile devices, which often support Bluetooth and NFC). 
+
 ## Basic Usage
 
 Since this device contains no battery, it is used by plugging it into some host machine.  This could be a desktop or laptop computer, a mobile phone, or even perhaps a smart card reader via an adapter.  When the device is inserted and powers up, it must be unlocked with a pattern.  It could support several profiles (personal and work, for example), a dummy code, a code to wipe the device if entered, and a feature to wipe the device if too many wrong codes are entered.
 
-Once unlocked, a small storage device could be made available to be mounted by the host system, which contains the password vault to be then accessed directly by your password manager.  This could be configured so that it is only available on trusted hosts, and on untrusted hosts could remain encrypted and hidden.  There could even be an additional storage device which is only accessible on trusted hosts after a passphrase has been entered, intended as storage for a master GPG key or the like.
+Once unlocked, a small storage device is made available to be mounted by the host system, which contains the password vault to be then accessed directly by your software password manager.  This could be configured so that it is only available on trusted hosts, and on untrusted hosts could remain encrypted and hidden.  There could even be an additional storage device which is only accessible on trusted hosts after a passphrase has been entered, intended as storage for a master GPG key or the like.
 
 When on untrusted devices, without the password vault mounted, some configured passwords can still be made available to be typed in directly by the device, which emulates a keyboard and types your passwords, using the auto-type pattern stored in that entry in your password vault.  These credentials can be browsed and selected by using menus on the display of the device, navigated by touch on the buttons on the underside.
-
-Additionally, it can be configured to emulate a smart card reader, and various MFA security keys, to be able to operate as various types of access, authentication, and security cards, allowing further consolidation of credentials into this one device across all the services and hosts one uses.
 
 Of course, when all of one's secure data is on one unit, that data must be backed up.  So this device must include a very easy *backup mode*.  When unlocked, and put into backup mode, it will automatically synchronize when the active unit is available, either plugged into the same host, or even potentially over a network.  This device could even support emulating a network device, and be plugged directly into a POE ethernet port, acting as a network available backup without a host machine.
 
@@ -69,4 +73,6 @@ When you get to your desk, you plug your Key Master into your workstation and un
 
 ## Summary
 
-Such a device as described could be a much-needed foundation to an accessible digital security for individuals and organizations alike, simplifying and securing peoples digital lives, a need which no other device available today quite meets.  It's very design would intentionally foster good security practices and habits, and be as convenient as possible.
+Herein I have presented a summary of such a device which would be a much-needed foundation to an accessible digital security for individuals and organizations alike, simplifying and securing peoples digital lives, a need which no other device available today quite meets, unifying authentication needs all sources from websites, FIDO keys, SSH keys, GPG keys, smart cards, and about everything else. 
+
+Such a device as described could be a much-needed foundation to an accessible digital security for individuals and organizations alike, it's very design intentionally fostering good security practices and habits.
