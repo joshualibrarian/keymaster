@@ -1,3 +1,25 @@
+- durable case
+  - made of metal and as strong as feasible
+  - as waterproof as possible
+  - a very strong hole on one end for attaching a chain or cord
+  - an attached, waterproof cap for USB-C port
+
+- twelve-key keypad
+  - arranged in a four by three grid, like an old phone
+  - capacitance keys require actual touch and have no movement
+  - the keys are each inset
+    - this is critical to the design to empower security culture
+    - users are encouraged to learn the pattern of their code, to enter it by touch
+    - code should always be entered out of sight to minimize risk of exposure
+  - unlock code can be arbitrary length and contain both regular presses and long presses
+  - once unlocked, keys are used to navigate menus shown on display
+  - available functions can be configured on a per-host basis
+  
+- display
+  - e-ink display can maintain image when unplugged
+  - primarily used after unlocking to navigate functions on device with buttons beneath display
+  - possibly fingerprint scanner on surface of screen?
+
 - special storage for GPG master keys
   - one for each profile
   - secure storage chip
@@ -36,12 +58,12 @@
     - auto type pattern can be used as fallback
 
 - smart card functionality
-  - a challenge-response mechanism is generally preferred, since the secret key never leaves the device
+  - a challenge-response mechanism is ideal, since the secret key never leaves the device
   - any entry with a secret key may be configured to be accessible with various smart card protocols
-  - on many operating systems, and platforms, this can be used for authentication
+  - on many platforms, this can be used for authentication
   - with an adapter, the device can be used directly on smart-card readers such as in retail devices
     - is power provided to smart cards sufficient to run device?
-    - if so, low power mode is needed with minimal functionality
+    - if not, low power mode is needed with minimal functionality
 
 - security key functionality
   - device should support various FIDO protocols
