@@ -1,76 +1,160 @@
-# Key Master
-(open to better names)
+# KeyMaster
 
-Personal Hardware Password Vault / Security Key
+(open to better names)
+Is *KeeMaster* better?
+Perhaps *vault*, *KeyVault*, *KeeVault*?
+*OpenVault* is pleasantly oxy-moronic?
+
+Personal Hardware Key Vault
+
+## Introduction
+
+There is a tremendous need for digital security today and solutions are fragmented.  I present herein this vision for an open source hardware data vault, which can be used to store ALL of one's private keys, passwords, and anything else, as securely and ***conveniently*** as possible.  Coupled with good software integration, this device could form the foundation of an open source security culture, secure authentication, communication, and even the lingering dream of a functional [web of trust](https://www.weboftrust.info/).
 
 ## The Problem
 
-Digital authentication is increasingly important today, and changing fast.  We are each required to maintain various credentials, keys, certificates, question/answer pairs, and more, both personal, and for various organizations, to the point where some kind of management tool is absolutely essential.
+The average modern person must keep track of some dozens and growing authentication data such as passwords, encryption keys, TOTP keys, cryptocurrency, passwords, question / answer pairs, certificates, and more.  Some management tool for this is clearly required.   
 
-Password managers are an important piece of the solution, and can be very convenient with plugins and graphical user interfaces, but sharing a password vault across devices can be inconvenient and introduce attack vectors, or use some service where a third party is being trusted with all your passwords.  Furthermore, on public or untrusted hosts without access to install software, one may also need to authenticate or access some passwords as securely as possible.
+Common good advice is to use a *password manager*, a program running on your workstation or mobile device which can secure your passwords in an encrypted vault file to be accessed for website forms or SSH sessions, crypto transactions, or whatever else.  The open source [KeePass](https://keepassxc.org/) family of software has made this fairly robust, with many synchronizing their vaults over the internet to all their devices.
 
-Even with a password vault, wherever it is stored, it must of course be encrypted, and some kind of password or PIN must be used to unlock it.  However, in many use cases, even on trusted hardware, these credentials are at risk of interception.  Consider a hardware or software keylogger, or a security camera recording you enter your PIN.
+While this solution is fairly convenient, and is almost sufficient, there are several important reasons why it does not account for every use case, and critically fails to support good security culture:
 
-There are, of course, many attempts to solve these problems, which I will not bother to enumerate here, but the one which comes closest is the [OnlyKey](https://onlykey.io/), by [CryptoTrust, LLC](https://crp.to/).  This hardware device is the conceptual foundation of the currently proposed device, adding some critical missing features.
+### Host Login
 
-## The Device
+If your password vault is stored on your computer, then you need to get into your computer in order to access it.  This, then necessitates remembering yet another password for each host, in addition to the master password for your password vault.  Quickly the notion of remembering only a single strong code falls apart.
 
-The proposal in question is of an open source hardware device, small and flat, approximately one inches by two inches, as rugged and waterproof as possible.  Externally it has the following main features:
+### Master Password Vulnerability
 
-- a twelve-key pad of capacitance buttons
+When it comes time to unlock your software password vault, you usually do so on a keyboard.  When you're at home on your desktop, you should trust your workstation, that's pretty safe.  But on other, less trusted hosts, or in less trusted locations, you may still need access to some of your passwords, which may be hard if they are at home on your device.  Even then, when you enter your master password to unlock your vault, you may be vulnerable to keyloggers, malware, or even cameras which may record your password as you type it, just like when you type your credit card PIN at the gas pump or the grocery store.
 
-Similar to the six-key pad on the OnlyKey, this device would have capacitance buttons used to unlock with a PIN and navigate once unlocked, slightly inset so they can be operated by touch, and more of them, allowing for a much wider variety of codes (which can also be thought of as patterns).  While this does make the unit slightly larger, I think this is a good thing, making it a bit easier to hold and use, and harder to misplace.
+### Synchronization Between Devices
 
-- an e-ink display and LED light
+If you must access your password vault on multiple devices, you must synchronize between them somehow.  That usually means over a network, which entails any number of opportunities to open attack vectors to compromise your (albeit encrypted) vault.  This may be acceptable in most cases, but it would be nice to have a not-so-inconvenient mechanism for synchronizing our key vaults locally.
 
-Once the user has unlocked the device with their PIN, there are many potential actions you might wish to take.  The buttons can be used to navigate these options, while the display, located on the opposite side of the device from the buttons, is used to indicate which buttons will do what actions.  It can also be used to do some configuration, show user data, display a bar-code, or whatever else.  The LED is used in conjunction with the display to indicate various states in various modes.
+## Attempts at a Solution
 
-Though it adds significant complications to the design, one additional feature that could be implemented (perhaps in a subsequent version) would be a fingerprint scanner, which could occupy the surface of the display, acting as an additional factor to the PIN entry.
+There are, of course, many attempts to solve these problems, aside from the aforementioned software password managers, and this all leads us to hardware storage vaults of various kinds, of which there are many.
 
-- a USB-C port (*female*)
+Some call themselves *hardware password managers* such as the [OnlyKey](https://onlykey.io/), the [Armory](https://www.crowdsupply.com/f-secure/usb-armory-mk-ii), and the [Signet](https://www.crowdsupply.com/nth-dimension/signet-high-capacity).  They usually enter passwords by emulating keyboards and typing them in.  This is secure and usually effective, but can be a bit clunky, and somewhat less convenient than using plugins that query your password database and autofill forms, such as with a good software password manager.
 
-This essential feature is intended to solve the problem of visibility when typing in your PIN.  Rather than a plug (male), which you plug in directly to a computer, the female port is intended to always be connected via a regular USB cable.  This way, you have more flexibility to type your PIN in a more secure arrangement, such as inside your coat, under your shirt, in your pocket, etc.
+Others call themselves *cold crypto wallets*, such as the [Trezor](https://trezor.io/), the [Keystone](https://keyst.one/), and a slew of others.  They may do a fine job of storing specific crypto private keys and help you back up those keys, but that's usually all they do.  Their accompanying software is focused on connecting you to cryptocurrency exchanges and related services, but rarely do they help you manage your passwords, your SSH keys, your PGP keys, and the rest.
 
-This also simplifies the use of adapters, allowing this device to connect to whatever devices you have, such as workstations, phones, or even have adapters for smart-card readers or network ports.  In either case, of course even with a plug, extension USB cords are an option, but this clarifies the intention and allows the use of common cords.
+## The Proposed Device
 
-Internally, this device will need at least a robust USB controller, capable of operating as several USB device classes including HID (emulating a keyboard to type in passwords or a FIDO security key), smart card reader, mass storage, and network device.  A small storage chip (< 1GB), and appropriate encryption hardware are also needed.
+The solution presented here is a hardware device, much like those referenced.  By leveraging features of each, and integrating well with existing password managers, we can create a device and usage pattern that is both secure and can fit reasonably into one's real life. 
 
-To keep this device as simple and secure as possible, no wireless communication options are included, so it's usable only with hard connections.  This is intentional, since many devices this will be plugged into already include such capabilities (such as mobile devices, which often support Bluetooth and NFC). 
+This proposed device is open source, small and flat, measuring approximately ***two inches by three inches***, and thick enough to have USB-C ports along the edge.  It is tamper-resistant, and has a metal case, being as durable and waterproof as possible.  It contains the following broad exterior features.
+
+### USB-C Ports
+
+While many similar small devices have a USB plug (male), this device has two USB-C ports (female) along it's edge.  Each of these function identically, being able to supply power to the device from a host machine.  When both are used simultaneously, the device acts as a USB hub and the other devices function normally.  In the case of a mobile host, this allows you to charge your phone while using this device, a likely common scenario.
+
+This feature is also essential to the goal of security, as with only receptacles on the device, it's usually on the end of a cord, and so easier to operate in locations which are safer for entering your code.  Having two ports also means that if one is damaged, the other may still be used.
+
+To keep this device as simple and secure as possible, no wireless communication options are included, so it's usable only with hard connections.  This is intentional, since many devices this will be plugged into already include such capabilities (such as mobile devices, which often support Bluetooth and NFC).
+
+### MicroSD Card Slot
+
+This device may also have a MicroSD card slot, allowing easy and safe importing of data directly without trusting any host, or of encrypting data to be transferred directly somewhere. 
+
+### Keypad
+
+Similar to the six-key pad on the [OnlyKey](https://onlykey.io/), this device has a keypad of capacitance keys which are used to unlock the device with a PIN code.  However, this keypad has ***twelve keys***, arranged like an older phone in a ***four by three grid***.
+
+Also, similarly to the [OnlyKey](https://onlykey.io/), the keys on this keypad are ***recessed***.  This an important features, because it allows the user to enter their code ***by touch*** with ***one hand***, perhaps thinking of it as a pattern, rather than a code.  This makes much easier the important security practice of entering your password ***out of sight***.  With this small device on the end of a cord, you can enter your pattern inside your vest, under your coat, behind your hat, or even in your pocket (if it's roomy enough).
+
+### Display
+
+In order to operate safely on less trusted hosts, this device must have a display.  It consists of an e-ink screen occupying the flat side, opposite the keypad.  Once the user has unlocked the device, they look down on it in their hand and can navigate the menu using the keys on the underside.
+
+While this device contains no battery, it does contain a capacitor sufficient to alter the message displayed when the device is unplugged, such as "If found, return to...", a QR code, a logo, or whatever else you might want.
+
+### RGB LED
+
+The device has a single configurable LED light, whose color can indicate the status or mode of the unit, which profiles are logged in, or whatever else is handy. 
+
+### Fingerprint Scanner?
+
+Though it adds significant complications to the design, one additional feature that ***could*** be added (perhaps in a subsequent version) is a fingerprint scanner.  It could occupy the surface of the display, acting as an additional factor to the PIN entry, though it's use for authentication is questionable, and I think perhaps it's better without it.
+
+### Internal Components
+
+Broadly, the hardware required for this device is a combination of the [Armory](https://www.crowdsupply.com/f-secure/usb-armory-mk-ii) and the [OnlyKey](https://onlykey.io/), but with a bigger keypad and a display.  It will require at least the following components:
+
+- cryptographic processors
+- true random number generator
+- microcontroller with protected memory
+  - manages keypad, unlocking, etc.
+- secure non-volatile storage (a few MB should do)
+  - profile keys decrypted by unlocking device
+  - group keys decrypted by profile keys
+  - group keys used to decrypt entries
+- small application processor running embedded linux
+- internal flash storage
+  - entries stored as encrypted volumes
+  - decrypted by group keys in secure flash 
+  - optionally additional flash for other data
+- USB controller
+  - able to emulate keyboard, network device, mass storage, smart card, ...
 
 ## Basic Usage
 
-Since this device contains no battery, it is used by plugging it into some host machine.  This could be a desktop or laptop computer, a mobile phone, or even perhaps a smart card reader via an adapter.  When the device is inserted and powers up, it must be unlocked with a pattern.  It could support several profiles (personal and work, for example), a dummy code, a code to wipe the device if entered, and a feature to wipe the device if too many wrong codes are entered.
+The device is used by plugging into some host, which could be a desktop or laptop computer, a mobile device, a network port, or any other (powered) host for which there is an adapter.  Once plugged in, it must be unlocked by entering a code on the keypad corresponding to one of the profiles.  That decrypts the profile key, which is used to decrypt all the group keys which encrypt the actual entries.  Most of this decryption is done lazily.  It supports several profiles, a code which wipes the device, and a feature that wipes it after too many failed guesses.
 
-Once unlocked, a small storage device is made available to be mounted by the host system, which contains the password vault to be then accessed directly by your software password manager.  This could be configured so that it is only available on trusted hosts, and on untrusted hosts could remain encrypted and hidden.  There could even be an additional storage device which is only accessible on trusted hosts after a passphrase has been entered, intended as storage for a master GPG key or the like.
+### Sharing Entries
 
-When on untrusted devices, without the password vault mounted, some configured passwords can still be made available to be typed in directly by the device, which emulates a keyboard and types your passwords, using the auto-type pattern stored in that entry in your password vault.  These credentials can be browsed and selected by using menus on the display of the device, navigated by touch on the buttons on the underside.
+Various protocols can be used to share entries between users of this device (and others), both directly between them and over networks.  Of course transmission over networks may introduce some attack vectors, for many people it's convenience, especially in limited use, vastly outweighs the risks.  Between TLS, VPNs, PGP, and whatever protocols we want to implement, we have many options for (mostly) safely sharing and synchronizing such private data over this untrusted internet.
 
-Of course, when all of one's secure data is on one unit, that data must be backed up.  So this device must include a very easy *backup mode*.  When unlocked, and put into backup mode, it will automatically synchronize when the active unit is available, either plugged into the same host, or even potentially over a network.  This device could even support emulating a network device, and be plugged directly into a POE ethernet port, acting as a network available backup without a host machine.
+### Backup Units
+
+Of course, when all of your private data is on one device, that data must be backed up.  While a user need have only one active unit (with as many profiles as they have room for), they should have at least one, if not several, backup vaults.  These backup units are identical to the active units, except they are set into backup mode.
+
+This is done by plugging the backup unit directly into the unlocked active unit, and then entering that same unlock code on the new backup unit, which registers the backup unit with the active one.  When changes are then made to the contents of the active unit, it will attempt to synchronize all registered backup units.
+
+### Death Protocol
+
+Having these active backup units, if they are accessible remotely, gives us the ability to implement the ***death protocol***, wherein users can bequeath their data to others upon their death.
+
+How does it know the user has died?  Well, of course, it doesn't really know, but the user sets a ***length of time***, a set of entries, and some recipients.  Each time the active device is used, an attempt is made to contact all the registered backup units.  If an active backup unit does not receive this contact within the given amount of time, then the unit presumes the user has died and the designated entries are released and distributed to the designated recipients, encrypted using their public keys.
+
+In general use, one could set this to six months, or a year.  Longer if you're going on a backwoods trek or the like.  If someone feared for their life, they could set certain items to be distributed, in a week or a day, if the contact is not made, which could execute on the backup unit from almost anywhere.
+
+### Auto-Type
+
+The device may be configured to reveal nothing to unknown hosts.  In this case, you can still have the unit auto-type your credentials by navigating the menu on the device screen with the keys and selecting an entry to type, which will execute the auto-type sequence which is contained in that entry.
+
+### Mounted Entries
+
+In whatever format we store the (encrypted) entries on the flash drive, such as the KeePass `KDBX` format, or whatever native one is designed, we can configure the device to make them available to the host, perhaps mounted in `~/vault`.  This allows them to be accessed directly by a well-integrated password manager and used as conveniently as possible, through web plugins, key agents, or the like.
+
+### Extended Storage
+
+While this device is designed primarily to store your authentication and encryption keys and data, there is no technical reason why it cannot have a secondary, much larger flash storage (on the order of terabytes), potentially storing a wide range of things, even all of a user's personal data.
+
+There is perhaps an argument to be made that it would be better to store one's encrypted data on a different device from the keys which decrypt it, which may have merit.  If one leans that way, they can use a model without such extended storage, and have their data on a separate device, which need only be a flash drive, which their vault is required to unlock.
+
+#### Mounted Home
+
+If you device does have extended storage, it could even eventually help realize the dream of the portable home directory, such as with [`systemd-homed`](https://systemd.io/HOME_DIRECTORY/).  Your home directory could be stored as an encrypted volume on the bulk storage and made accessible only to designated hosts after the vault has been unlocked.  Even if all the pieces are not yet in place for this to work completely, software can be used to synchronize your home directory or parts of it directly to this device when it's used.
+
+#### Public Partitions
+
+On an untrusted or unknown host, you may want access to some software, or even a trusted operating system.  This device may be configured with complete public, unencrypted partitions, which will be accessible to any host, even without unlocking the device.
+
+On these partitions you could store data that is not private and you want to have easily available.  This could include a `VCARD` file with your contact info, your public keys, your portfolio, some favorite music, or whatever else.
+
+Additionally, this public drive could store your commonly needed binaries, so even if running on an untrusted host, you could at least have trusted binaries.  This device can even have a bootable partition, containing one or several operating systems for various platforms, which you could customize and configure, having somewhat more trust in.
 
 ## Application Software
 
-There is much existing excellent open source software that we can build off, perhaps implementing the configuration of the device and management of the password vault into a program like KeePassXC, rolling out just what we need to, and not re-inventing any wheels.
+The degree to which the use of this device could become widespread largely depends on the associated software integration on popular platforms.  While the device ***can*** be used with no supporting software on the host whatsoever, the functionality will be broader, and the user experience much better, with good accompanying software. 
 
-## Some Examples
+There already exists a good foundation of open source software which can be built upon to make this daunting task feasible.  There are very mature password managers with good integration that can be fairly easily extended to read the native format of this device straight off the mounted vault entries and operate as normal.
 
-You're on the road and sit down to your laptop at a cafe, you open it up and plug in your Key Master with a regular USB cable.  Under your coat or your hat you type in your pattern by touch on the buttons and the device unlocks.  It sees that you are on a trusted device, and shows you appropriate options, including typing in your password to log into the machine, or authenticating as a smart card.  Once logged in, it mounts your password vault and loads your password manager, conveniently entering your passwords into websites with that program's plugins.
-
-When you're back at the hotel, you again plug your Key Master into your laptop and unlock it, perhaps under the covers if you're paranoid of hidden cameras.  You log into Netflix easily via the browser plugin, but your password has expired, and it insists you must change it.  You autogenerate a new password in your password manager and save it to the vault on your key.  Your backup Key Master is at home, plugged into your computer, or perhaps into a network port in your basement (maybe you even have a safe with an ethernet port inside it).  You have your laptop configured to establish an encrypted tunnel to your backup key at home, keeping it in sync with your active key.  Perhaps in addition to your home backup key, you pull your backup travel key out of your hat and plug it in after changing your password, and it automatically syncs with the others.  The LED light on it and e-ink display confirm that it's in sync, and you tuck it back in your hat.
-
----
-
-Even your phone can be authenticated by the Master Key, which is configured to allow only a limited set of your passwords on this device.  You've configured your phone password manager to cache a subset of these available passwords in memory, so that you don't have to always have your Key Master plugged in, unless you want to access your bank account or some other sensitive service.  So as soon as you've unlocked the phone, you unplug the key from your phone, and use it as normal, until the screen locks at your configured interval, and it needs to be unlocked again.
-
----
-
-You're at a friends house using their computer.  You plug your Master Key in and unlock it under the table, and since this is not a configured trusted device, it does not mount the storage drive with your password vault.  Instead, you are presented with the passwords you might need, listed on the menu on the device, which you can scroll through and select as needed.  They are then auto-typed according to the pattern stored with that entry in your password vault.
-
----
-
-You work for a company with extremely high security, with smart-card readers at the entrances.  When you arrive, you plug your company-issued Key Master into the smart-card reader with an adapter cable you carry for the purpose, and enter your PIN on your Key Master in the provided box for your hand, or under your coat.  Guests are given smart-cards, which must be unlocked with a code typed into buttons on the card itself, the slot for which is inside a box to hide your hand while you type your PIN.  These guest cards have only a single key on them, but you use your Master Key for much more.
-
-When you get to your desk, you plug your Key Master into your workstation and unlock it under your desk.  Your workstation is recognized, the smart card protocol is used to authenticate automatically, and you're logged in.  Your password manager has even loaded your SSH keys into the agent, and you're able to SSH without any hassle, without the keys ever being written to your workstation drive.  When you get up to use the restroom, you're expected to unplug the device and take it with you.  As soon as the device is unplugged, your workstation is configured to immediately lock and wipe your passwords from memory.
+This device has a full application processor, which runs an embedded linux and can carry on complex long-running tasks and network communication, such as for the backup process, and the death protocol.  Clearly there is a lot of code that needs to be written to make all that happen smoothly, but it doesn't have to happen immediately, rather built up over time, after the hardware is rolled out and the firmware is stable.  
 
 ## Summary
 
-Herein I have presented a summary of such a device which would be a much-needed foundation to an accessible digital security for individuals and organizations alike, simplifying and securing peoples digital lives, a need which no other device available today quite meets, unifying authentication needs all sources from websites, FIDO keys, SSH keys, GPG keys, smart cards, and about everything else, while intentionally fostering good security practices and habits.
+When talking about security or privacy with most people today, I hear a lot of "don't care" attitude, an apathy towards privacy and security.  This seems due, in part, to the seeming futility of accomplishing some semblance of real security today, and I think if an actual, functional, usable system was available, many would take it up, in addition to the many geeks that already use such products as are available today.
+
+The dream of this device is not a tool for development or hardware hacking, it is a an everyday thing that average, non-technical people can actually learn to use, and (perhaps with some guidance), incorporate into their lives, eventually supporting a new era of privacy and secure communications.
