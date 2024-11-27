@@ -9,7 +9,7 @@ Personal Data Vault
 
 ## Brief Overview
 
-This proposed hardware device has elements from several which exist on the market, notably the [OnlyKey](https://onlykey.io/), and the [Armory](https://www.crowdsupply.com/f-secure/usb-armory-mk-ii), but has several important design features which are about making the device flexible and easy to incorporate into people's actual lives and digital processes.  It can be used with any host (desktop, laptop, mobile, etc.) and once unlocked gives you secure access to all your keys and passwords, and even all your personal data.  It has strong software integration and a robust backup system and can even be configured to bequeath your data to specified persons after your death.
+This proposed hardware device has elements from several which exist on the market, notably the [OnlyKey](https://onlykey.io/), and the [Armory](https://www.crowdsupply.com/f-secure/usb-armory-mk-ii), but has several important design features which are about making the device flexible and easy to incorporate into people's actual lives and digital processes.  It can be used with any host and once unlocked gives you secure access to all your keys and passwords, and even all your personal data.  It has a robust backup system and can even be configured to bequeath your data to specified persons after your death.
 
 ## Introduction
 
