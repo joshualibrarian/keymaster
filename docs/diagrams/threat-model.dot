@@ -1,0 +1,40 @@
+digraph {
+    rankdir=LR
+
+    subgraph cluster_assets {
+    label="Assets"; style=filled; color=lightgrey
+    A1 [label="Keys (MVK/DEK)"]
+    A2 [label="PINs / Codes"]
+    A3 [label="Logs / Policy"]
+    A4 [label="Device Integrity"]
+    }
+
+    subgraph cluster_adversaries {
+    label="Adversaries"; style=filled; color=lightblue
+    E1 [label="Casual Thief"]
+    E2 [label="Insider"]
+    E3 [label="Remote Attacker"]
+    E4 [label="Advanced Lab"]
+    }
+
+    subgraph cluster_vectors {
+    label="Attack Surfaces"; style=filled; color=lightyellow
+    V1 [label="Physical"]
+    V2 [label="Side-channel"]
+    V3 [label="Fault Injection"]
+    V4 [label="Logical (USB/FS/Net)"]
+    }
+
+    E1 -> V1
+    E2 -> V1
+    E2 -> V2
+    E2 -> V3
+    E3 -> V4
+    E4 -> V2
+    E4 -> V3
+
+    V1 -> {A1 A2 A3 A4}
+    V2 -> {A1 A2 A3 A4}
+    V3 -> {A1 A2 A3 A4}
+    V4 -> {A1 A2 A3 A4}
+}
