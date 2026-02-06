@@ -1,0 +1,46 @@
+digraph CryptoFlow {
+  graph [fontsize=10, labelloc=t, label="KeyMaster – Crypto Key Derivation Flow", rankdir=LR];
+  node  [shape=box, fontsize=10];
+  edge  [fontsize=9];
+
+  subgraph cluster_profile {
+    label="Per Profile p"; style=rounded; color="#aaccaa";
+    PIN [label="PIN_p (user input)", shape=parallelogram];
+    KDF [label="Argon2id"];
+    PK [label="ProfileKey_p"];
+
+    PIN -> KDF -> PK;
+  }
+
+  subgraph cluster_drs {
+    label="Device Hardware"; style=rounded; color="#aabbee";
+    DRS [label="DRS\n(MCU unique + mfg salt)\n(no SE in v1)"];
+  }
+
+  HKDF [label="HKDF"];
+  KEK [label="KEK_p"];
+
+  PK -> HKDF;
+  DRS -> HKDF;
+  HKDF -> KEK;
+
+  MVKwrap [label="MVK_p (wrapped)\n(on storage)", style=dashed];
+  UnwrapMVK [label="Unwrap (AEAD)"];
+  MVK [label="MVK_p\n(RAM)"];
+
+  KEK -> UnwrapMVK;
+  MVKwrap -> UnwrapMVK -> MVK;
+
+  subgraph cluster_entry {
+    label="Per Entry j"; style=rounded; color="#ddbbbb";
+    DEK [label="DEK_j (random)"];
+    AEAD [label="AEAD\n(XChaCha20-Poly1305 or AES-GCM)"];
+    Payload [label="Ciphertext payload_j\n(on storage)", style=dashed];
+    
+    DEK -> AEAD -> Payload;
+
+    Recipients [label="Recipients on entry:\n{profile=A, Wrap(MVK_A, DEK_j)}\n{profile=B, Wrap(MVK_B, DEK_j)}", shape=note];
+  }
+
+  MVK -> Recipients [label="unwrap matching recipient\n→ DEK_j (RAM)"];
+}
