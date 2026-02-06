@@ -1,0 +1,11 @@
+# macOS
+.DS_Store
+
+# IntelliJ
+.idea
+
+# Claude
+CLAUDE.md
+.claude/
+
+archive
