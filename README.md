@@ -1,4 +1,4 @@
-# KeyMaster
+# Key Master
 ## Open Hardware Password Manager & Data Vault
 
 *Note: "KeyMaster" is a working name; we're open to better suggestions.*
