@@ -3,7 +3,7 @@
 
 *Note: "KeyMaster" is a working name; we're open to better suggestions.*
 
-KeyMaster is a small, batteryless, open hardware device designed to be the practical foundation for everyday secure identity: passwords, SSH/GPG keys, OTPs, wallet seeds, and personal data. It aims to be both trustworthy and convenient—usable on any host, from locked-down corporate desktops to borrowed laptops and phones.
+KeyMaster is a small, open hardware USB device designed to be the practical foundation for everyday secure identity: passwords, SSH/GPG keys, OTPs, wallet seeds, and personal data. It's batteryless—powered entirely by the USB port it plugs into—and aims to be both trustworthy and convenient, usable on any host from locked-down corporate desktops to borrowed laptops and phones.
 
 **Status:** Concept and design-in-progress. We're looking for an engineering partner and early collaborators to turn this into hardware and firmware.
 
@@ -73,7 +73,7 @@ Every week, you enter your PIN at grocery store terminals with a flimsy plastic 
 
 ## What We're Building
 
-A compact USB-C device (~2" × 3") with no battery that intelligently adapts to its environment:
+A compact USB-C device (~2" × 3") that draws power from whatever it's plugged into—no battery needed—and intelligently adapts to its environment:
 
 **Physical Design:**
 
