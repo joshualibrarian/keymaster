@@ -23,7 +23,7 @@ Our digital lives are a mess of passwords, keys, and secrets scattered across de
 **Local password managers** (KeePass, KeePassXC, etc.) keep your vault on your own machine, but:
 
 - You must first unlock the host to access your vault—two unlock steps, two attack surfaces
-- The host itself may be compromised (keyloggers, malware, shoulder surfers)
+- The host itself may be compromised (keyloggers, malware, prying eyes)
 - Syncing your vault across devices becomes your problem
 - On a borrowed or locked-down machine, you can't use it at all
 
@@ -36,9 +36,9 @@ Our digital lives are a mess of passwords, keys, and secrets scattered across de
 
 **The real-world pain points:**
 
-- At a coffee shop, you can't safely log in—keyloggers, shoulder surfers, compromised machines
+- At a coffee shop, you can't safely log in — keyloggers, security cameras, compromised machines
 - At a border crossing, you might be forced to unlock your devices
-- At work, USB storage is blocked but you still need your credentials
+- At work, USB storage is blocked, but you still need your credentials
 - Your backup strategy is "hope nothing breaks"
 
 **KeyMaster solves this** by being a single, open, trustworthy device that adapts to any environment while keeping your secrets under your physical control.
@@ -51,7 +51,7 @@ Every week, you enter your PIN at grocery store terminals with a flimsy plastic 
 
 **Why this matters:**
 
-- No shoulder surfer can see your pattern
+- Nobody watching can see your pattern
 - No camera can record your keystrokes
 - No one even knows you're unlocking anything
 - Silent capacitive touch—no audible feedback to give you away
