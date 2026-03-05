@@ -1,258 +1,129 @@
-# Key Master
-## Open Hardware Password Manager & Data Vault
+# KeyMaster
+## Open Hardware Identity Device
 
-*Note: "KeyMaster" is a working name; we're open to better suggestions.*
+KeyMaster is a batteryless USB device for secure daily identity operations: credentials, SSH/GPG keys, OTP secrets, wallet seeds, and other sensitive data.
 
-KeyMaster is a small, open hardware USB device designed to be the practical foundation for everyday secure identity: passwords, SSH/GPG keys, OTPs, wallet seeds, and personal data. It's batteryless—powered entirely by the USB port it plugs into—and aims to be both trustworthy and convenient, usable on any host from locked-down corporate desktops to borrowed laptops and phones.
-
-**Status:** Concept and design-in-progress. We're looking for an engineering partner and early collaborators to turn this into hardware and firmware.
+**Status:** Concept and partner-scoping. Audience:
+- Investors evaluating product direction and market fit
+- Engineering firms evaluating feasibility, scope, and execution risk
 
 ---
 
 ## Why This Exists
 
-Our digital lives are a mess of passwords, keys, and secrets scattered across devices and services. The current solutions are fundamentally broken:
+Most people currently split digital identity across:
+- Cloud password managers
+- Local vault files on laptops/phones
+- Hardware tokens that solve only one slice of the problem
 
-**Cloud password managers** (1Password, LastPass, Bitwarden, etc.) are convenient but have critical gaps:
+That creates practical failures in real environments:
+- Untrusted or borrowed computers
+- Locked-down enterprise systems
+- Travel and coercion-sensitive situations
+- Fragile backup/recovery workflows
 
-- Your vault lives on someone else's servers
-- You must trust their cloud, their code, their security practices
-- They can be subpoenaed, hacked, or shut down
-- They require an internet connection and a trusted host
-
-**Local password managers** (KeePass, KeePassXC, etc.) keep your vault on your own machine, but:
-
-- You must first unlock the host to access your vault—two unlock steps, two attack surfaces
-- The host itself may be compromised (keyloggers, malware, prying eyes)
-- Syncing your vault across devices becomes your problem
-- On a borrowed or locked-down machine, you can't use it at all
-
-**Hardware tokens** solve pieces but create new problems:
-
-- YubiKeys do authentication, not password storage
-- Crypto wallets handle coins, not your SSH keys or login credentials
-- Secure flash drives are just encrypted storage with no smarts
-- None of them work well on locked-down or borrowed machines
-
-**The real-world pain points:**
-
-- At a coffee shop, you can't safely log in — keyloggers, security cameras, compromised machines
-- At a border crossing, you might be forced to unlock your devices
-- At work, USB storage is blocked, but you still need your credentials
-- Your backup strategy is "hope nothing breaks"
-
-**KeyMaster solves this** by being a single, open, trustworthy device that adapts to any environment while keeping your secrets under your physical control.
+KeyMaster aims to combine usability and strong security controls in one portable device under the user's physical control.
 
 ---
 
-## The Killer Feature: Invisible Unlock
+## Product Direction
 
-Every week, you enter your PIN at grocery store terminals with a flimsy plastic guard—while a hundred cameras record your keystrokes. KeyMaster's recessed capacitive keypad changes this: you can unlock it by touch alone, invisibly, under a table or in your pocket.
+### Core experience
+- On-device unlock and confirmation
+- Adaptive behavior based on host trust
+- Profile-based separation (including reduced-exposure and duress workflows)
+- Reliable backup/recovery paths
 
-**Why this matters:**
+### Canonical host modes
+- **Restricted Mode:** minimal host exposure for unknown/untrusted environments
+- **Full Mode:** broader workflows on approved hosts
+- **Reader Mode:** compatibility path for smart-card-centric/legacy environments (roadmap)
 
-- Nobody watching can see your pattern
-- No camera can record your keystrokes
-- No one even knows you're unlocking anything
-- Silent capacitive touch—no audible feedback to give you away
-
-**Profiles add another layer:**
-
-- Multiple profiles, each with its own unlock pattern
-- Each profile reveals different groups of entries
-- A **duress profile** can show harmless dummy data
-- The encrypted blobs are indistinguishable—there's no way to prove other profiles exist
-
-**Real scenarios:**
-
-- **Border crossing:** Unlock your "travel" profile. Officials see airline and hotel logins. Your banking, crypto, and work credentials don't exist as far as they can tell.
-- **Coerced unlock:** Enter your duress pattern. The device unlocks to a decoy vault. Your real data remains hidden.
-- **Public spaces:** Unlock under the table at a coffee shop. Nobody sees. Nobody knows.
+### Design principles
+- User control over secrets
+- Security posture appropriate to context
+- Open designs and auditable implementation
+- Practical interoperability with existing ecosystems
 
 ---
 
-## What We're Building
+## Password Manager Integration
 
-A compact USB-C device (~2" × 3") that draws power from whatever it's plugged into—no battery needed—and intelligently adapts to its environment:
+KeyMaster prefers **native integration** with existing open-source password managers (KeePassXC is one possible target), instead of brittle file-format tricks.
 
-**Physical Design:**
-
-- 12-key recessed capacitive keypad (silent, pattern-based unlock, usable by touch under a table)
-- E-paper display (readable in sunlight, no light leakage, persists when unplugged)
-- Two USB-C ports (either can be upstream; one for backups/flash drives)
-- MicroSD slot for bulk storage
-
-**Adaptive Security Modes:**
-
-- **Untrusted host:** CCID smart card + HID keyboard only. Auto-type credentials without exposing the vault.
-- **Trusted host:** Mount the vault filesystem directly. KeePassXC integration.
-- **Smart-card reader:** Low-power mode via adapter for legacy systems.
-
-**Storage Options:**
-
-- Secure vault: 128-512 MB (enough for 10,000+ entries with attachments)
-- OS and tools: 8-16 GB eMMC
-- User storage: MicroSD up to 1 TB
-- Pro model: M.2 NVMe up to 1 TB
+Fallback compatibility will include import/export workflows (including `.kdbx` where appropriate) when native integration is not available.
 
 ---
 
-## Core Capabilities
+## Architecture
 
-**Identity & Secrets Management:**
+The v1 architecture is expected to include:
+- A security/control domain for unlock, policy, and key operations
+- A feature domain for richer host-facing workflows
 
-- Passwords, usernames, URLs, notes
-- SSH and GPG keys
-- TOTP/HOTP seeds
-- Crypto wallet seeds and keys
-- Certificates and API tokens
-
-**File Storage & Sync:**
-
-- Encrypted partitions unlocked by the device
-- Read-only "tools" partition for trusted binaries
-- Bootable rescue image
-- Automatic sync between active and backup units
-
-**Security Features:**
-
-- Per-profile cryptographic isolation
-- Optional secure element for tamper resistance
-- Supercapacitor for safe shutdown and tamper response
-- All crypto on-device; secrets never touch the host
+Silicon and software stack choices remain open in this phase so engineering partners can propose the best implementation.
 
 ---
 
-## Technical Architecture
+## Security Model
 
-**Dual-Processor Design:**
+KeyMaster:
+- Keep root secrets within device trust boundaries
+- Isolate profiles cryptographically
+- Reduce data exposure on untrusted hosts
+- Provide durable anti-bruteforce and update integrity controls
 
-- **MCU (always on):** Handles keypad, display, USB device functions, crypto. Can run standalone in low-power mode.
-- **Application Processor (high-power):** Runs Linux for FUSE filesystem, sync daemon, composite USB gadget.
-
-**Storage Tiers:**
-
-- SPI-NOR: Bootloader and recovery
-- SPI-NAND: Encrypted vault store
-- eMMC: Operating system and tools
-- MicroSD/NVMe: User bulk storage
-
-**USB Composite Device:**
-
-- Ethernet (ECM/NCM/RNDIS)
-- CCID smart card
-- HID keyboard
-- Mass storage (UASP)
-
-See [docs/specs/hardware.md](docs/specs/hardware.md) for the full engineering specification.
+Threat model limits and residual risks are called out explicitly in implementation proposals.
 
 ---
 
-## Cryptographic Security
+## Roadmap
 
-**Key Hierarchy:**
+### Phase 0 (Current)
+- Finalize product requirements and threat model boundaries
+- Select engineering partner(s)
+- Build early contributor and reviewer community
 
-```
-PIN → Argon2id → Profile Key (PK)
-PK + Device Root Secret → KEK
-KEK unwraps → Master Vault Key (MVK)
-MVK unwraps → Per-entry Data Encryption Keys (DEK)
-```
+### Phase 1
+- Hardware and firmware prototypes
+- Core unlock/profile/vault flows
+- Baseline host integration
 
-**Key Properties:**
+### Phase 2
+- Usability hardening and integration expansion
+- Backup/sync maturity
+- External security review cycles
 
-- PIN is never stored
-- Master keys exist only in RAM when unlocked
-- Each entry can have multiple recipients (for sharing across profiles)
-- Optional secure element anchors the Device Root Secret
-
-See [docs/specs/security.md](docs/specs/security.md) for the full cryptographic specification.
-
----
-
-## Development Roadmap
-
-**Phase 0: Partnership (Current)**
-
-- Finalize specifications
-- Find engineering partner for hardware/firmware development
-- Build community of early collaborators
-
-**Phase 1: Prototype**
-
-- Custom PCB design
-- MCU firmware (keypad, display, USB, crypto)
-- Basic vault functionality
-
-**Phase 2: Full Implementation**
-
-- Linux on AP
-- FUSE filesystem
-- Sync daemon
-- KeePassXC integration
-
-**Phase 3: Production**
-
-- Enclosure tooling
-- Manufacturing setup
-- Certification (FCC, CE)
-
----
-
-## Why Open Source Matters
-
-**Security through transparency:**
-
-- Auditable hardware designs
-- Auditable firmware and software
-- No hidden backdoors
-- Community review of cryptographic implementation
-
-**User empowerment:**
-
-- Build your own if you want
-- Modify to suit your needs
-- Fork if the project goes sideways
-- Truly own your security infrastructure
-
-**Ecosystem benefits:**
-
-- Interoperability with existing tools (KeePassXC, GPG, SSH)
-- Standard protocols (CCID, FIDO, USB mass storage)
-- Contributions welcome
+### Phase 3
+- Manufacturing, certification, and launch readiness
 
 ---
 
 ## Documentation
 
-
-| Document                                | Description                                 |
-| --------------------------------------- | ------------------------------------------- |
-| [Vision](docs/vision.md)                | Full philosophy and "why this exists"       |
-| [Hardware Spec](docs/specs/hardware.md) | Engineering-quotable hardware specification |
-| [Software Spec](docs/specs/software.md) | Firmware and software architecture          |
-| [Security Spec](docs/specs/security.md) | Cryptographic design and threat model       |
-| [User Guide](docs/user-guide.md)        | Usage scenarios and workflows               |
-| [Examples](examples.md)                 | Detailed narrative use cases                |
+| Document | Purpose |
+| --- | --- |
+| [Vision](docs/vision.md) | Problem framing, product philosophy, positioning |
+| [Hardware Requirements](docs/specs/hardware.md) | Outcome-level hardware requirements |
+| [Software Requirements](docs/specs/software.md) | Outcome-level firmware/software requirements |
+| [Security Requirements](docs/specs/security.md) | Threat model and security requirements baseline |
+| [User Guide](docs/user-guide.md) | Intended user workflows |
+| [Examples](examples.md) | Narrative scenarios aligned to current scope |
 
 ---
 
-## License
+## Open Source Commitment
 
-- **Hardware:** CERN Open Hardware License v2 (strongly reciprocal)
-- **Firmware/Software:** GPLv3 or Apache 2.0 (TBD with engineering partner)
-- **Branding:** "KeyMaster" name and logo trademarked
+- Hardware design artifacts: open
+- Firmware/software: open
+- Formats/protocols: documented and reviewable
 
-The commitment to open source is non-negotiable.
+The project is designed for auditability and long-term user control.
 
 ---
 
 ## Get Involved
 
-**For engineering partnerships:** We're actively seeking a hardware/firmware development partner. If you're an engineering firm with experience in secure embedded systems, we'd love to discuss collaboration.
-
-**For early feedback:** Open an issue on GitHub or reach out with questions, suggestions, or use cases we should consider.
-
-**For contributors:** Hardware design, firmware development, host software, documentation, and testing all need help.
-
-Together, we can build a future where everyone has secure, convenient access to their digital identity without sacrificing privacy or control.
+- **Engineering firms:** propose architecture, risk, and milestone plans
+- **Security reviewers:** challenge threat model and assumptions
+- **Contributors/users:** provide use cases, implementation ideas, and feedback

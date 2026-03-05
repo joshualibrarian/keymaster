@@ -1,12 +1,12 @@
 digraph CryptoFlow {
-  graph [fontsize=10, labelloc=t, label="KeyMaster – Crypto Key Derivation Flow", rankdir=LR];
+  graph [fontsize=10, labelloc=t, label="KeyMaster - Conceptual Key Hierarchy (Illustrative)", rankdir=LR];
   node  [shape=box, fontsize=10];
   edge  [fontsize=9];
 
   subgraph cluster_profile {
     label="Per Profile p"; style=rounded; color="#aaccaa";
     PIN [label="PIN_p (user input)", shape=parallelogram];
-    KDF [label="Argon2id"];
+    KDF [label="PIN Hardening KDF\n(algorithm TBD)"];
     PK [label="ProfileKey_p"];
 
     PIN -> KDF -> PK;
@@ -17,7 +17,7 @@ digraph CryptoFlow {
     DRS [label="DRS\n(MCU unique + mfg salt)\n(no SE in v1)"];
   }
 
-  HKDF [label="HKDF"];
+  HKDF [label="Key Derivation\n(function TBD)"];
   KEK [label="KEK_p"];
 
   PK -> HKDF;
@@ -25,7 +25,7 @@ digraph CryptoFlow {
   HKDF -> KEK;
 
   MVKwrap [label="MVK_p (wrapped)\n(on storage)", style=dashed];
-  UnwrapMVK [label="Unwrap (AEAD)"];
+  UnwrapMVK [label="Unwrap (approved method)"];
   MVK [label="MVK_p\n(RAM)"];
 
   KEK -> UnwrapMVK;
@@ -34,7 +34,7 @@ digraph CryptoFlow {
   subgraph cluster_entry {
     label="Per Entry j"; style=rounded; color="#ddbbbb";
     DEK [label="DEK_j (random)"];
-    AEAD [label="AEAD\n(XChaCha20-Poly1305 or AES-GCM)"];
+    AEAD [label="Payload Encryption\n(AEAD family)"];
     Payload [label="Ciphertext payload_j\n(on storage)", style=dashed];
     
     DEK -> AEAD -> Payload;
