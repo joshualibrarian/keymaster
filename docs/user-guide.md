@@ -44,8 +44,8 @@ KeyMaster is a critical identity device. Backup is part of the primary workflow,
 - For approved hosts
 - Expanded credential management and integration workflows
 
-### Reader Mode (roadmap)
-- Compatibility path for smart-card-centric/legacy environments
+### Card Emulation Mode (roadmap)
+- Direct legacy smart-card-reader workflow via adapter under constrained-power operation
 
 ---
 

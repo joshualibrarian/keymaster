@@ -54,15 +54,15 @@ Required behavior:
 - Maintains stable USB data and avoids repeated disconnect/re-enumeration under normal cable movement.
 
 Power targets:
-- Minimum supported pass-through to downstream host: `5V @ 1.5A` continuous.
-- Preferred target: `5V @ 3A` continuous when thermal/electrical limits allow.
+- Required fast-charge target via USB-PD pass-through: `9V @ 3A` (27W).
+- Preferred headroom target via USB-PD pass-through: `15V @ 3A` (45W), subject to thermal/electrical design limits.
 
 ### 3.3 Power States
 Hardware defines and supports:
 - **Off:** no external power
 - **Restricted Mode:** low-power secure baseline behavior
 - **Full Mode:** expanded functionality when policy/power permit
-- **Reader Mode:** very low-power compatibility mode for smart-card-style adapter path
+- **Card Emulation Mode:** very low-power mode for direct use through a smart-card adapter in legacy smart-card readers
 
 ### 3.4 Brown-Out / Disconnect Safety
 - Fails safe on cable pull, brown-out, and role swap.
@@ -71,42 +71,52 @@ Hardware defines and supports:
   - clear/reset sensitive on-screen state
   - zeroize active in-memory key material
 
+### 3.5 Expected Compute Split
+The preferred v1 architecture uses:
+- **MCU domain (always available):** keypad/touch scan, display/status control, policy gatekeeping, restricted-mode USB behavior, and security-critical key handling paths.
+- **AP domain (power-gated when not needed):** richer host integrations, advanced management/sync workflows, and higher-complexity software services.
+
+This split can be implemented with different silicon choices, but proposals should preserve the same functional separation.
+
 ---
 
-## 4. Low-Power and Reader Mode Requirements
+## 4. Low-Power and Card Emulation Mode Requirements
 
-Reader Mode exists specifically to support a future smart-card adapter and other constrained-power environments.
+Card Emulation Mode exists specifically for the smart-card adapter workflow:
+- KeyMaster connects to an adapter that plugs directly into a legacy smart-card reader.
+- In this path, KeyMaster runs in constrained-power operation while still providing secure unlock and core smart-card-centric behavior.
+- Card Emulation Mode power budget is set to make this direct-reader workflow practical.
 
-### 4.1 Reader Mode Budget (Electrical)
-- Reader Mode average power draw stays within adapter-provided power limits.
+### 4.1 Card Emulation Mode Budget (Electrical)
+- Card Emulation Mode average power draw stays within adapter-provided power limits.
 - Required budget target at 5V input:
   - **Average:** `<= 20 mA`
   - **Peak:** `<= 40 mA` (excluding brief startup transients)
 
-### 4.2 Reader Mode Behavior
-In Reader Mode, hardware supports at minimum:
+### 4.2 Card Emulation Mode Behavior
+In Card Emulation Mode, hardware supports at minimum:
 - Secure unlock input
 - Basic confirmation/status output
-- Restricted host functionality needed for smart-card-centric workflows
+- Restricted host functionality needed for direct legacy smart-card-reader workflows
 
-In Reader Mode, hardware defers or disables non-essential high-draw functions:
+In Card Emulation Mode, hardware defers or disables non-essential high-draw functions:
 - High-refresh display updates
 - Secondary storage/peripheral power
 - High-complexity processing domain
 
 ### 4.3 Verification
-Partner proposals include an actual power budget table and measurement plan showing compliance for Reader Mode.
+Partner proposals include an actual power budget table and measurement plan showing compliance for Card Emulation Mode.
 
 ---
 
 ## 5. Architecture Requirements
 
-### 5.1 Security vs Feature Separation
-Design separates:
-- **Security/control domain:** unlock, policy enforcement, key operations, restricted baseline
-- **Feature domain:** richer host workflows and higher-complexity services
+### 5.1 Reference Role Model
+Architecture proposals should map clearly to this role model:
+- **MCU role:** stays responsive in low-power contexts, enforces unlock/policy decisions, and handles sensitive key paths.
+- **AP role:** powers up for full-mode features and heavier software tasks, without becoming a single point of failure for baseline secure behavior.
 
-Implementation may be dual-processor or equivalent isolation, but trust boundaries must be explicit.
+Implementations can differ, but trust boundaries and role ownership remain explicit.
 
 ### 5.2 Baseline Availability
 Without high-power boot, the device still provides restricted secure operation and policy gating.
@@ -152,7 +162,7 @@ Also includes, in the base or higher SKU path:
 Mode model:
 - **Restricted Mode:** minimal exposed host surface on unknown/untrusted hosts
 - **Full Mode:** expanded workflows on approved hosts
-- **Reader Mode:** constrained-power smart-card-centric path
+- **Card Emulation Mode:** direct legacy smart-card-reader workflow via adapter under constrained-power operation
 
 Partner proposals provide concrete compatibility expectations for:
 - Windows
@@ -194,7 +204,7 @@ PCB/mechanical commonality across SKUs is preferred.
 
 1. Architecture proposal with trust boundaries
 2. Electrical power-path design proposal, including pass-through strategy
-3. Reader Mode power budget and measurement plan
+3. Card Emulation Mode power budget and measurement plan
 4. Feasibility/risk register and milestone plan
 5. Preliminary BOM/cost range with supply risk notes
 6. Validation plan (electrical, USB interoperability, mechanical, environmental)
@@ -207,5 +217,5 @@ A proposal is acceptable when it demonstrates:
 - Recessed on-device unlock input and low-power status display
 - Two-port USB-C design with verified pass-through power behavior
 - Stable inline phone + charger + KeyMaster workflow
-- Reader Mode power budget compatible with constrained-power adapter design
+- Card Emulation Mode power budget compatible with constrained-power adapter design
 - Explicit trust-boundary architecture and secure boot/debug posture

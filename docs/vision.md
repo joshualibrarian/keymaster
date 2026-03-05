@@ -47,7 +47,7 @@ The device should work with existing operating systems and credential ecosystems
 
 - **Restricted Mode:** minimal host-facing surface for unknown/untrusted environments
 - **Full Mode:** richer workflows on approved hosts
-- **Reader Mode:** compatibility path for smart-card-centric/legacy environments (roadmap)
+- **Card Emulation Mode:** direct legacy smart-card-reader workflow via adapter under constrained-power operation (roadmap)
 
 ---
 

@@ -39,7 +39,7 @@ KeyMaster aims to combine usability and strong security controls in one portable
 ### Canonical host modes
 - **Restricted Mode:** minimal host exposure for unknown/untrusted environments
 - **Full Mode:** broader workflows on approved hosts
-- **Reader Mode:** compatibility path for smart-card-centric/legacy environments (roadmap)
+- **Card Emulation Mode:** direct legacy smart-card-reader workflow via adapter under constrained-power operation (roadmap)
 
 ### Design principles
 - User control over secrets

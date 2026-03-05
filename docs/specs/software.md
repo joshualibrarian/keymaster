@@ -43,9 +43,9 @@ All docs should use this naming:
   - For approved hosts and richer workflows
   - Enables broader management/integration capabilities
 
-- **Reader Mode**
+- **Card Emulation Mode**
   - Optional in v1, but roadmap-defined
-  - Compatibility path for smart-card-centric or legacy environments
+  - Direct legacy smart-card-reader workflow via adapter under constrained-power operation
 
 ---
 

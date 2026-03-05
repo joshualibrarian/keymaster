@@ -96,7 +96,7 @@ Validation requirements:
 Security model must define what is exposed in each mode:
 - Restricted Mode: minimal host surface and no broad vault visibility
 - Full Mode: expanded capability on approved hosts with policy gates
-- Reader Mode: legacy/smart-card compatibility path with explicit constraints
+- Card Emulation Mode: direct legacy smart-card-reader workflow via adapter with explicit low-power and exposure constraints
 
 Never acceptable:
 - Exporting unprotected root key material to host
@@ -133,14 +133,3 @@ Security proposal must include:
 3. Implementation review checklist
 4. Fuzzing and negative testing plan for parsers/protocols
 5. External review/penetration testing plan before production launch
-
----
-
-## 11. Security Communication Guidance (Investor + Engineering)
-
-To keep docs credible:
-- Prefer "designed to" over "guarantees" unless formally proven
-- Separate shipped v1 controls from roadmap hardening ideas
-- Publish known limitations alongside each advanced claim
-
-This improves trust with both investors and engineering partners.
