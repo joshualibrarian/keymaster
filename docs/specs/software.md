@@ -80,15 +80,15 @@ Partner proposals should include a threat-informed rationale for chosen architec
 
 KeyMaster integrates directly with an existing password manager as the primary path.
 
+Why this path:
+- Existing password managers already have polished UX and mature daily workflows.
+- They already integrate with browsers and desktop autofill flows.
+- Reusing that ecosystem reduces implementation risk and shortens time-to-usable product.
+
 What this means:
-- We choose a real password manager target (KeePassXC is one possible example).
-- We integrate at the app/backend level, not by asking users to browse raw files.
+- We choose a real open source password manager target (KeePass family for instance).
 - If needed, we modify that password manager to read/write KeyMaster's native vault format.
 - Cryptographic authority stays on KeyMaster during normal operation.
-
-Compatibility path:
-- Import/export workflows remain available for migration and interoperability.
-- `.kdbx` support is part of that compatibility path where appropriate.
 
 ---
 
@@ -118,11 +118,17 @@ Production signing and key-handling processes must be documented before shipment
 ## 9. Backup and Sync Outcomes
 
 Required behavior:
-- Users can maintain at least one recoverable backup path
-- Sync state is verifiable (not silent black-box behavior)
-- Conflict handling is deterministic and user-comprehensible
+- Users can maintain multiple backup KeyMaster units; one backup is minimum, not the target.
+- Backup units automatically sync from the active unit when connectivity is available.
+- Sync state is visible and verifiable (not a silent black box).
+- Conflict handling is deterministic and understandable to users.
+- Recovery to replacement hardware from synced backups is straightforward and documented.
 
-Implementation details (transport/discovery/object model) are open to partner proposal.
+Roadmap direction:
+- Sharing selected groups with other active units (not just passive backups).
+- Explicit permission and policy controls for cross-device shared groups.
+
+Implementation details (transport/discovery/object model) remain open to partner proposal.
 
 ---
 

@@ -3,7 +3,9 @@
 
 KeyMaster is a batteryless USB device for secure daily identity operations: credentials, SSH/GPG keys, OTP secrets, wallet seeds, and other sensitive data.
 
-**Status:** Concept and partner-scoping. Audience:
+**Status:** Concept and partner-scoping.
+
+Audience:
 - Investors evaluating product direction and market fit
 - Engineering firms evaluating feasibility, scope, and execution risk
 
@@ -124,6 +126,7 @@ The project is designed for auditability and long-term user control.
 
 ## Get Involved
 
+- **Investors:** reach out if this direction fits your thesis and you want to support development through prototype and launch.
 - **Engineering firms:** propose architecture, risk, and milestone plans
 - **Security reviewers:** challenge threat model and assumptions
 - **Contributors/users:** provide use cases, implementation ideas, and feedback

@@ -137,7 +137,8 @@ Storage design includes:
 Includes:
 - Secure boot support
 - Production debug lockdown strategy
-- Hardware-backed entropy source suitable for cryptographic key generation
+- Robust hardware randomness source for cryptographic use (TRNG-class entropy, not pseudo-random only)
+- Entropy health-check strategy at boot and runtime to detect RNG failure/degradation
 - Tamper event signaling path and response policy
 
 Also includes, in the base or higher SKU path:

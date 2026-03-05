@@ -74,15 +74,20 @@ The exact schedule and enforcement mechanism are implementation decisions, subje
 
 ---
 
-## 6. Profile Isolation and Deniability Claims
+## 6. Profile Isolation and Duress Requirements
 
-Required:
-- Profiles are cryptographically isolated from each other
-- Duress/reduced-exposure profile support
+Required behavior:
+- Each profile uses independent key material; compromise of one profile does not decrypt other profiles.
+- Unlock credentials map deterministically to profile scope and policy.
+- Duress/reduced-exposure profiles are supported as first-class profiles, not UI-only filters.
+- Non-target profile presence is not directly revealed through normal unlock and storage inspection paths.
 
-Communication requirement:
-- Documentation must avoid absolute deniability claims
-- Claims should be framed as **raising attacker uncertainty/cost**, with explicit limitations
+Security boundary:
+- Duress and deniability features are risk-reduction controls, not guarantees against unlimited forensic pressure.
+
+Validation requirements:
+- Partner proposals include test cases showing profile key separation and non-cross-decryption.
+- Partner proposals include adversarial tests for profile-enumeration leakage through metadata, timing, and error behavior.
 
 ---
 
