@@ -76,17 +76,19 @@ Partner proposals should include a threat-informed rationale for chosen architec
 
 ---
 
-## 6. Password Manager Compatibility (Explicit Policy)
+## 6. Password Manager Integration
 
-KeyMaster prefers **native integration** over brittle file hacks.
+KeyMaster integrates directly with an existing password manager as the primary path.
 
-Primary direction:
-- Collaborate with existing open-source password manager ecosystems (KeePassXC as one possible target) on dedicated backend/integration paths that keep cryptographic authority on KeyMaster
+What this means:
+- We choose a real password manager target (KeePassXC is one possible example).
+- We integrate at the app/backend level, not by asking users to browse raw files.
+- If needed, we modify that password manager to read/write KeyMaster's native vault format.
+- Cryptographic authority stays on KeyMaster during normal operation.
 
-Fallback direction:
-- Provide import/export and compatibility workflows (including `.kdbx` where appropriate) where native integration is unavailable
-
-Direct file browsing is not treated as first-class native integration.
+Compatibility path:
+- Import/export workflows remain available for migration and interoperability.
+- `.kdbx` support is part of that compatibility path where appropriate.
 
 ---
 

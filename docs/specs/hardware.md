@@ -157,7 +157,8 @@ Partner proposals provide concrete compatibility expectations for:
 - Windows
 - macOS
 - Linux
-- Mobile hosts via adapters
+- Android
+- iOS
 
 ---
 
