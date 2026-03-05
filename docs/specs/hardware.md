@@ -1,187 +1,209 @@
-# KeyMaster - Hardware Requirements (Draft)
+# KeyMaster - Hardware Specification
 
 **Status:** Concept and partner-scoping
 **Audience:** Engineering firms, hardware/firmware leads, technical evaluators
 
 ---
 
-## 1. Product Definition
+## 1. Product Intent
 
-KeyMaster v1 is a pocketable, USB-powered hardware identity device with:
-- On-device unlock input
-- On-device status/approval display
-- Profile-aware security behavior across trusted and untrusted hosts
-- Built-in path to backup/recovery workflows
-
-The hardware target is a practical daily-carry product, not a lab-only security module.
+KeyMaster is a pocketable, USB-powered identity device with:
+- On-device unlock input (no host keyboard dependency)
+- On-device status/confirmation display
+- Safe operation on trusted and untrusted hosts
+- Practical phone/laptop usage, including single-port phone charging scenarios
 
 ---
 
-## 2. Reference Hardware Shape
+## 2. Physical Requirements
 
 ### 2.1 Form Factor
-- Target envelope: approximately `50 x 75 x 15 mm` (same class as a compact external drive)
-- Carryable in pocket or key pouch
-- Robust enough for frequent connect/disconnect cycles
+- Target size class: approximately `50 x 75 x 15 mm`.
+- Operates as a pocket-carryable, cable-safe device for daily insertion/removal.
 
-### 2.2 User-Facing Surfaces
-- **Input:** recessed multi-key touch surface, target `12-key (3x4)` layout, supports PIN and pattern-style entry
-- **Display:** low-power reflective display (e-paper class preferred), target `2.7"-3.5"`
-- **Indicators:** at least one auxiliary status indicator (LED or equivalent)
+### 2.2 Input Surface
+- Provides a recessed multi-key input area for blind/tactile entry.
+- Target layout: `12-key (3x4)`.
+- Supports both numeric PIN and pattern-style entry.
 
-### 2.3 Ports and Expansion
-- Minimum `1x USB-C` for host connection
-- Preferred `2x USB-C` for flexible workflows (host + accessory/backup/peripheral)
-- Optional removable storage interface if it does not weaken security posture
+### 2.3 Display
+- Provides always-visible lock/status information when powered.
+- Low-power reflective display class (e-paper or equivalent) is preferred.
+- Display updates are not required for every keypress in low-power operation.
 
----
-
-## 3. Hardware Architecture Requirements
-
-### 3.1 Domains
-Hardware must separate responsibilities into:
-- **Security/control domain:** unlock UI, policy enforcement, key operations, low-power baseline behavior
-- **Feature domain:** richer host workflows and optional high-complexity services
-
-Partners may implement this as dual-processor or equivalent isolation architecture. Proposals must show trust boundaries and failure behavior.
-
-### 3.2 Always-Available Capability
-Without requiring a high-power boot path, the device must support:
-- Lock/unlock interaction
-- Basic host-facing restricted behavior
-- Key material handling under security policy
-
-### 3.3 High-Function Capability
-When power/policy allow, the device must support:
-- Richer host integration workflows
-- Backup/sync support paths
-- Larger data handling and advanced management operations
+### 2.4 Ports
+- Provides `2x USB-C` ports.
+- One-port designs are out of scope for v1 because inline power + device use is a core workflow.
 
 ---
 
-## 4. Power and Electrical Behavior
+## 3. Power and USB Requirements
 
-### 4.1 Power Source
-- USB-powered operation; no user battery dependency for core features
-- Clean handling of cable disconnect and brown-out conditions
+### 3.1 Batteryless Operation
+- Operates without an internal rechargeable battery.
+- External USB power is the primary source.
 
-### 4.2 Power States
-Hardware design must define and validate at least:
-- **Disconnected/off**
-- **Restricted baseline state** (low-power functionality available)
-- **Full-function state** (expanded capabilities active)
+### 3.2 Pass-Through Power (Critical)
+The device supports inline use where a phone has a single USB-C port and needs both charging and KeyMaster access.
 
-### 4.3 Power-Loss Safety
-Power interruption must not corrupt vault metadata or leave key material in unsafe states.
+Required behavior:
+- Supports simultaneous:
+  - Upstream host/device connection (phone/computer)
+  - External power input from charger/power source
+- Passes power through while KeyMaster remains operational.
+- Maintains stable USB data and avoids repeated disconnect/re-enumeration under normal cable movement.
+
+Power targets:
+- Minimum supported pass-through to downstream host: `5V @ 1.5A` continuous.
+- Preferred target: `5V @ 3A` continuous when thermal/electrical limits allow.
+
+### 3.3 Power States
+Hardware defines and supports:
+- **Off:** no external power
+- **Restricted Mode:** low-power secure baseline behavior
+- **Full Mode:** expanded functionality when policy/power permit
+- **Reader Mode:** very low-power compatibility mode for smart-card-style adapter path
+
+### 3.4 Brown-Out / Disconnect Safety
+- Fails safe on cable pull, brown-out, and role swap.
+- Protects vault integrity on abrupt power loss.
+- Includes a short hold-up energy buffer (supercapacitor or equivalent) to complete critical shutdown actions on unplug:
+  - clear/reset sensitive on-screen state
+  - zeroize active in-memory key material
 
 ---
 
-## 5. Storage Architecture Requirements
+## 4. Low-Power and Reader Mode Requirements
 
-### 5.1 Storage Classes
-Hardware must support distinct storage roles:
-- Boot and recovery path
-- Encrypted vault data
-- System software and update partitions
+Reader Mode exists specifically to support a future smart-card adapter and other constrained-power environments.
 
-### 5.2 Capacity Envelope (Target)
-- Vault storage: `128 MB - 512 MB` class
-- System/software storage: `>= 8 GB` class
-- Optional user bulk storage: removable and/or higher-capacity SKU
+### 4.1 Reader Mode Budget (Electrical)
+- Reader Mode average power draw stays within adapter-provided power limits.
+- Required budget target at 5V input:
+  - **Average:** `<= 20 mA`
+  - **Peak:** `<= 40 mA` (excluding brief startup transients)
 
-### 5.3 Data Integrity and Endurance
-Proposal must cover:
+### 4.2 Reader Mode Behavior
+In Reader Mode, hardware supports at minimum:
+- Secure unlock input
+- Basic confirmation/status output
+- Restricted host functionality needed for smart-card-centric workflows
+
+In Reader Mode, hardware defers or disables non-essential high-draw functions:
+- High-refresh display updates
+- Secondary storage/peripheral power
+- High-complexity processing domain
+
+### 4.3 Verification
+Partner proposals include an actual power budget table and measurement plan showing compliance for Reader Mode.
+
+---
+
+## 5. Architecture Requirements
+
+### 5.1 Security vs Feature Separation
+Design separates:
+- **Security/control domain:** unlock, policy enforcement, key operations, restricted baseline
+- **Feature domain:** richer host workflows and higher-complexity services
+
+Implementation may be dual-processor or equivalent isolation, but trust boundaries must be explicit.
+
+### 5.2 Baseline Availability
+Without high-power boot, the device still provides restricted secure operation and policy gating.
+
+---
+
+## 6. Storage Requirements
+
+Hardware supports three roles:
+- Boot/recovery path storage
+- Encrypted vault storage
+- System/update storage
+
+Capacity targets:
+- Vault class: `128 MB - 512 MB`
+- System software class: `>= 8 GB`
+- Optional user bulk storage path (base or higher SKU)
+
+Storage design includes:
 - Wear strategy
 - Sudden power-loss integrity behavior
-- Update rollback behavior
-- Manufacturing provisioning and recovery path
-
----
-
-## 6. USB Behavior and Host Compatibility
-
-### 6.1 Mode Expectations
-KeyMaster host behavior maps to three product modes:
-- **Restricted Mode:** minimal exposed host surface for untrusted environments
-- **Full Mode:** expanded functionality on approved hosts
-- **Reader Mode:** compatibility path for smart-card-centric environments (roadmap commitment)
-
-### 6.2 Interoperability Targets
-v1 proposals must provide concrete compatibility behavior for:
-- Windows
-- macOS
-- Linux
-- Mobile hosts via adapters where practical
-
-### 6.3 Interface Strategy
-Exact USB class composition is partner-proposed. The proposal must include:
-- Enumeration strategy by mode
-- Power negotiation assumptions
-- Failure behavior on hostile or noncompliant hosts
+- Recovery and reprovisioning workflow
 
 ---
 
 ## 7. Security-Relevant Hardware Controls
 
-Required hardware-enforced controls:
-- Secure boot chain support
+Includes:
+- Secure boot support
 - Production debug lockdown strategy
-- Hardware-backed entropy source suitable for cryptographic operations
-- Tamper event signaling path with defined response policy
+- Hardware-backed entropy source suitable for cryptographic key generation
+- Tamper event signaling path and response policy
 
-Recommended for hardened SKU:
-- Secure element or equivalent hardened key anchor
+Also includes, in the base or higher SKU path:
+- Hardened key anchor (secure element or equivalent)
 - Enhanced tamper detection/response
-- Additional physical hardening features
 
 ---
 
-## 8. Mechanical and Environmental Targets
+## 8. Host Compatibility Requirements
 
-Proposal must include target values and validation plan for:
-- Operating/storage temperature ranges
-- ESD robustness for user-accessible surfaces and ports
+Mode model:
+- **Restricted Mode:** minimal exposed host surface on unknown/untrusted hosts
+- **Full Mode:** expanded workflows on approved hosts
+- **Reader Mode:** constrained-power smart-card-centric path
+
+Partner proposals provide concrete compatibility expectations for:
+- Windows
+- macOS
+- Linux
+- Mobile hosts via adapters
+
+---
+
+## 9. Environmental and Mechanical Targets
+
+Partner proposals provide targets and validation plans for:
+- ESD robustness at user-accessible ports/surfaces
 - Connector insertion life
 - Drop/handling durability
+- Operating/storage temperature ranges
 - Moisture/dust tolerance appropriate for daily carry
 
 ---
 
-## 9. SKU Strategy
+## 10. SKU Direction
 
-### 9.1 Base SKU (v1)
-- Core security/control + full user workflows
-- USB-powered portability
-- On-device input/display
-- Encrypted vault with recovery path
+### Base SKU
+- Full core workflow support
+- Batteryless operation
+- 2x USB-C with pass-through power behavior
 
-### 9.2 Hardened/Pro SKU (optional in v1, planned path)
+### Hardened/Pro SKU (roadmap)
 - Additional tamper resistance
-- Optional hardened key storage
+- Hardened key anchor
 - Expanded performance/storage envelope
 
-Both SKUs should share maximal board/mechanical commonality where practical.
+PCB/mechanical commonality across SKUs is preferred.
 
 ---
 
-## 10. Deliverables Expected From Engineering Partners
+## 11. Deliverables Required From Engineering Firms
 
-For initial engagement:
 1. Architecture proposal with trust boundaries
-2. Feasibility assessment and critical risk register
-3. Prototype plan and milestone schedule
-4. Preliminary BOM/cost ranges with component risk notes
-5. Validation plan (electrical, mechanical, environmental, interoperability)
+2. Electrical power-path design proposal, including pass-through strategy
+3. Reader Mode power budget and measurement plan
+4. Feasibility/risk register and milestone plan
+5. Preliminary BOM/cost range with supply risk notes
+6. Validation plan (electrical, USB interoperability, mechanical, environmental)
 
 ---
 
-## 11. Acceptance Checklist (v1 Hardware)
+## 12. Acceptance Criteria (v1 Hardware)
 
 A proposal is acceptable when it demonstrates:
-- Clear implementation of recessed on-device unlock input and low-power display
-- USB-powered operation with safe behavior under disconnect/brown-out
-- Trust-boundary architecture for security/control vs feature workloads
-- Mode-based host behavior (Restricted/Full) with roadmap for Reader Mode
-- Viable manufacturing and recovery/provisioning path
-
----
+- Recessed on-device unlock input and low-power status display
+- Two-port USB-C design with verified pass-through power behavior
+- Stable inline phone + charger + KeyMaster workflow
+- Reader Mode power budget compatible with constrained-power adapter design
+- Explicit trust-boundary architecture and secure boot/debug posture
