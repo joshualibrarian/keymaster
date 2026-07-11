@@ -45,6 +45,21 @@ Our digital lives are a mess of passwords, keys, and secrets scattered across de
 
 ---
 
+## Drop-In for Existing Smart Card Infrastructure
+
+KeyMaster implements **USB CCID**, the standard smart-card protocol, which means it interoperates with the massive installed base of infrastructure that already expects smart cards:
+
+- **US Department of Defense Common Access Card (CAC)** — issued to millions of service members, reservists, civilian employees, and contractors
+- **Federal PIV credentials** under HSPD-12 — required for physical and logical access across federal agencies
+- **Healthcare smart-card programs** — HIPAA-sensitive logins, electronic prescribing, clinical workflows
+- **Enterprise PKI deployments** — defense contractors, financial institutions, and security-conscious corporations that have standardized on smart-card logon
+
+Where your organization already requires a smart card, KeyMaster is one. Where your personal life needs a password manager, passkey store, crypto wallet, TOTP generator, and SSH-key holder, it's also that — on the same device.
+
+The vast majority of hardware security tokens do one thing. KeyMaster does the things they each do, plus the things the other categories do, plus the things none of them do — in a single device that's interoperable with the standards each of those markets already speaks.
+
+---
+
 ## The Killer Feature: Invisible Unlock
 
 Every week, you enter your PIN at grocery store terminals with a flimsy plastic guard—while a hundred cameras record your keystrokes. KeyMaster's recessed capacitive keypad changes this: you can unlock it by touch alone, invisibly, under a table or in your pocket.
@@ -94,6 +109,18 @@ A compact USB-C device (~2" × 3") that draws power from whatever it's plugged i
 - OS and tools: 8-16 GB eMMC
 - User storage: MicroSD up to 1 TB
 - Pro model: M.2 NVMe up to 1 TB
+
+---
+
+## Sold in Pairs
+
+The single biggest cause of lost credentials is "I meant to back up, but I never got around to it." KeyMaster addresses this at the point of sale: **the default purchase is a pair, not a single device.** Two units together, at a meaningful discount over buying one, so every new user starts with an automatic backup in hand.
+
+The two units sync continuously whenever they can see each other — over the local network when they're both plugged in, over direct USB-to-USB connection when you want to do it manually. The primary lives with you; the backup lives in a safe, a safe-deposit box, a trusted relative's house, or wherever makes sense for your threat model.
+
+Single units remain available — to replace a lost device, to add a third backup, or for users who have their own backup strategy — but new buyers are strongly steered toward the pair. Backup isn't a feature you have to remember to set up; it's something you already have because you already bought it.
+
+This pattern also reinforces a healthy mental model: **KeyMasters are fungible paired devices, not single precious objects.** If one gets lost or damaged, you buy a replacement, sync from the surviving twin, and you're whole again.
 
 ---
 

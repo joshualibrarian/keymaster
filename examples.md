@@ -1,8 +1,40 @@
 # KeyMaster Usage Examples
 
-These narrative examples illustrate how KeyMaster adapts to different environments and use cases. The device behavior described represents the intended user experience.
+These narrative examples illustrate how KeyMaster fits into everyday life across a wide range of users. The first several are ordinary users — parents, new homeowners, students — because those are the people KeyMaster is ultimately designed for. The later examples explore specialized scenarios (developers, security professionals, journalists) where KeyMaster's advanced features become especially valuable.
 
-## 1. The Digital Nomad
+## 1. The Parent
+
+**Taylor** has three kids. She juggles logins for their school portals, after-school activities, pediatricians, insurance, and the family's shared streaming services — and admits she was reusing a version of "family2019!" for too many of them.
+
+After a friend's account gets breached, Taylor buys a KeyMaster pair. Her primary lives on her keychain with a pattern PIN she can enter at school pickup without anyone watching. The backup goes in the kitchen junk drawer, where it syncs whenever she plugs the primary in at her desk. Over a weekend of using auto-type to save each site as she visits it, her browser's password manager goes empty.
+
+For the shared family Netflix, she adds her spouse as a recipient on that one entry. Both of them can unlock it from their own KeyMasters; neither of them can see the other's personal accounts.
+
+**Security benefit:** No more password reuse, no more browser-saved credentials on a family laptop the kids occasionally use, and a real backup sitting in a drawer without her having to remember to make it.
+
+## 2. The First-Time Homebuyer
+
+**Jennifer** just closed on her first house. In two weeks she goes from fifteen online accounts to forty: mortgage portal, homeowner's insurance, property tax, utilities, HOA, lawn service, garbage collection, home warranty, alarm monitoring.
+
+She and her partner Derek each get a KeyMaster pair. Her primary lives on her keychain; her backup lives in the fireproof safe in the basement with the house title and their passports. They create a shared "Household" group for joint accounts and keep personal accounts separate — multi-recipient encryption means both of them can unlock the shared entries without seeing the other's private ones.
+
+When the cable company's tech support asks her to confirm account credentials during a service call, she plugs in KeyMaster under the coffee table and auto-types the account number and PIN. The tech doesn't see her typing anything; she doesn't need to read it off a sticky note.
+
+**Security benefit:** Her financial infrastructure is under her physical control, not her browser's. If her laptop is stolen, the thief gets a browser with no saved credentials — and the backup KeyMaster is in the safe.
+
+## 3. The College Student
+
+**Jamal** is starting grad school. His accounts include the university portal, financial aid, campus housing, library, several journal subscriptions, GitHub for his research code, an SSH key for the lab server, and shared documents with his advisor. Previously he was reusing three or four passwords and occasionally getting locked out after breaches.
+
+He buys a KeyMaster pair — less than the annual cost of a cloud password manager, and the data never leaves his own hardware. His primary lives on his keychain next to his dorm key. His backup stays at his parents' house, syncing whenever he's home for break.
+
+On the lab's shared compute server, he plugs in KeyMaster, unlocks it under the desk, and KeyMaster auto-types his SSH passphrase or signs via CCID. His advisor can't see what credentials he used; the next student to use the machine sees nothing of his session.
+
+When his phone gets stolen at a concert, his accounts are unaffected — his phone never held his actual passwords. He disables the stolen device from his Google account, buys a replacement, and is back to normal within a few hours.
+
+**Security benefit:** His credentials are on a device he physically controls. Losing his phone means losing a device, not losing his digital life.
+
+## 4. The Digital Nomad
 
 **Sarah** works remotely and travels frequently, using various computers and networks.
 
@@ -16,7 +48,7 @@ On her trusted laptop, KeyMaster switches to Composite Mode. She can access her 
 
 **Security benefit:** Even if the co-working computer is compromised, it never sees her actual passwords or knows about her other profiles.
 
-## 2. The Corporate Employee
+## 5. The Corporate Employee
 
 **Marcus** works at a large company with strict IT policies and locked-down workstations.
 
@@ -30,7 +62,7 @@ KeyMaster switches to full Composite Mode, giving Marcus access to all his profi
 
 **Security benefit:** Work and personal identities remain completely separate, satisfying corporate security policies while maintaining personal privacy.
 
-## 3. The Security-Conscious Family
+## 6. The Security-Conscious Family
 
 **The Chen family** shares some accounts while keeping others private.
 
@@ -45,7 +77,7 @@ Emma's KeyMaster has a policy that prevents access to financial sites and limits
 
 **Security benefit:** Selective sharing without compromising individual privacy or security.
 
-## 4. The Developer
+## 7. The Developer
 
 **Alex** manages dozens of SSH keys, API tokens, and development credentials across multiple clients.
 
@@ -60,7 +92,7 @@ Alex uses the device's built-in key rotation feature to generate new SSH keys fo
 
 **Security benefit:** Client credentials remain isolated while maintaining convenient access to all development tools.
 
-## 5. The Frequent Traveler
+## 8. The Frequent Traveler
 
 **Maria** crosses international borders regularly and needs to protect sensitive data from inspection.
 
@@ -75,7 +107,7 @@ Maria disables Travel Mode with her master PIN, restoring access to all profiles
 
 **Security benefit:** Plausible deniability and protection against coercive inspection while maintaining access to essential accounts.
 
-## 6. The Small Business Owner
+## 9. The Small Business Owner
 
 **Tom** runs a marketing agency and needs to manage both business and client credentials securely.
 
@@ -90,7 +122,7 @@ When a client relationship ends, Tom can export only that client's credentials t
 
 **Security benefit:** Professional credential management with clear client boundaries and employee access control.
 
-## 7. The Privacy Advocate
+## 10. The Privacy Advocate
 
 **Jordan** prioritizes maximum security and minimal trust in external services.
 
@@ -105,7 +137,7 @@ Jordan regularly backs up the encrypted vault to multiple MicroSD cards, storing
 
 **Security benefit:** Maximum security with minimal trust in host computers or cloud services.
 
-## 8. The Emergency Responder
+## 11. The Emergency Responder
 
 **Dr. Kim** works in emergency medicine and needs reliable access to critical systems under any conditions.
 
@@ -120,7 +152,7 @@ Dr. Kim can quickly add temporary team members as recipients for shared emergenc
 
 **Security benefit:** Reliable access to critical systems regardless of infrastructure conditions or device availability.
 
-## 9. The Cryptocurrency Enthusiast
+## 12. The Cryptocurrency Enthusiast
 
 **Alex** manages multiple crypto wallets and DeFi protocols while maintaining operational security.
 
@@ -135,7 +167,7 @@ When interacting with new protocols, Alex uses KeyMaster's signing capabilities 
 
 **Security benefit:** Private key isolation with convenient transaction signing across multiple protocols and risk levels.
 
-## 10. The Academic Researcher
+## 13. The Academic Researcher
 
 **Dr. Patel** collaborates with international research teams and needs to manage access to various institutional resources.
 
@@ -150,7 +182,7 @@ At international conferences, Dr. Patel uses Travel Mode to limit exposure while
 
 **Security benefit:** Institutional credential isolation with secure research data management across international collaborations.
 
-## 11. The Freelance Journalist
+## 14. The Freelance Journalist
 
 **Sam** investigates sensitive stories and needs to protect sources while maintaining professional access.
 
@@ -165,7 +197,7 @@ Interview recordings and sensitive documents are encrypted and stored in KeyMast
 
 **Security benefit:** Source protection through credential isolation and plausible deniability features.
 
-## 12. The Elderly Technology User
+## 15. The Elderly Technology User
 
 **Robert**, 72, wants to stay connected with family online but struggles with password complexity and security.
 

@@ -414,21 +414,43 @@ Attempt Tracking (in SE or MCU flash):
   │  lockout_until: timestamp        │
   └──────────────────────────────────┘
 
-Backoff Schedule:
+Backoff Schedule (defaults, user-configurable):
   Attempts 1-3:   No delay
   Attempts 4-6:   30 second delay
   Attempts 7-9:   5 minute delay
   Attempts 10-12: 1 hour delay
   Attempts 13+:   24 hour delay
 
-Lockout:
-  After 20 failed attempts: Permanent lockout
-  Recovery: Factory reset only (vault data lost)
+Lockout (default: 20 attempts, user-configurable):
+  After N failed attempts: Permanent lockout
+  Recovery: Factory reset or social recovery (see Key Recovery section)
 
 Counter Reset:
   Successful unlock resets counter to 0
   Counter stored in tamper-resistant memory
 ```
+
+The lockout threshold, backoff schedule, and reset policy are user-configurable during setup and adjustable later (via elevated unlock).  Users with high recall confidence and high-value vaults may set a tighter lockout (10 attempts or fewer); users who routinely mistype and accept marginally higher brute-force risk may set a looser one (30 or more).  The defaults reflect a general-purpose choice.
+
+### On Brute-Force Resistance
+
+Traditional brute-force analysis assumes an attacker can issue guesses rapidly, so PIN entropy must be large enough to resist billions or trillions of attempts. KeyMaster's design breaks both assumptions.
+
+**Input is physical, not programmable.** The capacitive keypad has no mechanical switches and no exposed contacts. Automating key entry would require a robotic apparatus that correctly triggers capacitive sensing across 12 keys — a significantly harder engineering problem than driving a USB interface or soldering to a debug pin. For practical purposes, a human attacker enters guesses by hand, at human speeds.
+
+**Attempts are hard-capped.** The rate-limiting schedule permanently locks the device after a user-configured number of failed attempts (default: 20). Recovery then requires factory reset or social recovery (see the Key Recovery section). An attacker gets at most N tries total — not N per second indefinitely.
+
+**The math inverts.** A 6-digit PIN has 10⁶ = 1,000,000 possible values. At the default 20-attempt cap, random guesses against a uniformly-chosen 6-digit PIN succeed with probability 20 / 10⁶ = 0.002% — roughly 1 in 50,000. An 8-digit PIN drops that to 1 in 5 million. Users who want tighter protection can lower the cap; users who routinely mistype can raise it, accepting marginally higher brute-force exposure. Either way, the protection is stronger than most online services provide against password guessing, and it's achieved with PINs short enough to remember easily.
+
+**PIN length primarily serves other goals.** Because brute force is not the limiting factor, users can choose PIN length based on other considerations:
+
+- **Coercion-resistance**: longer sequences are harder to compel quickly under duress; the act of entering a 16-digit sequence is visibly slower and more cognitively demanding than a 4-digit one
+- **Shoulder-surfing resistance**: longer patterns are harder for a bystander to memorize in the brief window of observation
+- **Personal memorability**: a meaningful 12-digit sequence (a historical date, a phone number) may be easier to recall than an arbitrary 4-digit one
+
+The device supports PINs of arbitrary length within hardware limits; users pick what fits their threat model.
+
+**Implication for positioning:** KeyMaster's security does not come from forcing users to memorize high-entropy secrets. It comes from making attempts expensive and finite, so modest entropy suffices. This is a structurally different security story than software password managers (which must defend against offline attacks on exported vaults at billions of guesses per second) and is a direct consequence of keeping the vault in tamper-resistant hardware with physical-only input.
 
 ### PIN Entry Security
 
@@ -436,20 +458,71 @@ Counter Reset:
 Keypad Properties:
   - Recessed design: not visible from side angles
   - Silent capacitive touch: no audible feedback
-  - Pattern-based entry: reduces shoulder surfing
   - No key labels visible when in use
+  - Purely physical input: no remote/programmatic entry path
 
-Pattern vs. Digit PIN:
-  - Device supports both modes
-  - Pattern: 4-9 key sequence (swipe-like)
-  - Digit: 4-12 digit numeric PIN
-  - Pattern preferred for public spaces
+PIN Memorization Styles:
+  Users can frame their PIN mentally in whichever way works for them:
+  - As a traced pattern (shape on the keypad, like a swipe unlock)
+  - As a numeric code (digits, like a phone or debit-card PIN)
+  - As a meaningful sequence (dates, phone numbers, personal mnemonics)
+
+  The device stores and verifies the input as an ordered sequence of key
+  touches.  Pattern vs. digit is a user preference, not a device mode.
+  Patterns often suit quick under-the-table entry (muscle memory of shape);
+  digits often suit recall across contexts and devices.
 
 PIN in Memory:
   - Stored in TrustZone secure RAM (if available)
   - Zeroized immediately after PK derivation
   - Never written to flash or non-secure memory
 ```
+
+### Tiered Unlock for Elevated Operations
+
+A profile unlock gives the user access to their day-to-day credentials: passwords, TOTP seeds, routine signing keys. For a small number of high-sensitivity items, the user may want an additional authentication step beyond the profile PIN. KeyMaster supports **tiered unlock** — operations or entries flagged as elevated require a second PIN, distinct from the profile PIN, entered after the profile is already unlocked.
+
+**Motivation:**
+
+The classic PGP hierarchy distinguished a master key (used only for certifying other keys, kept extra carefully) from subkeys (used for day-to-day operations). The same asymmetry applies to any user who holds a few very-rarely-used, catastrophic-if-compromised secrets alongside many frequently-used routine ones. Requiring the same PIN for both forces a trade-off: either excessive friction on routine operations or insufficient protection on critical ones. Tiered unlock resolves the trade-off by scaling protection to sensitivity.
+
+**Mechanism:**
+
+```
+Profile Unlock (Tier 1):
+  PIN_1 → PK_1 → KEK_1 → MVK_1
+  Unlocks routine entries in the profile.
+
+Elevated Unlock (Tier 2):
+  PIN_2 → PK_2 → KEK_2 → EVK  (Elevated Vault Key)
+  Required to access elevated entries or perform elevated operations.
+  Valid only while the profile itself is already unlocked (session-gated).
+
+Elevated Entries:
+  Wrapped with EVK rather than MVK.
+  Visible as metadata (title, group) after profile unlock, but content accessible
+  only after elevated unlock within the same session.
+```
+
+**Typical elevated operations:**
+
+- Revealing wallet seeds or seed phrases
+- Exporting the private key of a long-term signing identity
+- Authorizing a new paired device or sync partner
+- Rotating the profile's master key
+- Accessing a "cold" entry group (backup authentication codes, inheritance instructions, etc.)
+
+**Duress interaction:**
+
+Because elevated unlock requires both PINs, an attacker who has extracted the profile PIN — via coercion, shoulder-surfing, or keystroke observation — still cannot access elevated content without the second PIN. The two PINs should be chosen to differ in length and style (a pattern for the profile, a numeric sequence for elevation, or vice versa) to make them cognitively distinct and reduce the risk of both being surrendered in the same duress event.
+
+**Policy configurability:**
+
+The set of entries and operations requiring elevation is policy-controlled. Default: wallet seeds, signing identities, device-pairing operations, and any entry the user explicitly flags. Users can adjust the policy during setup or later — with elevation itself required to change the policy, preventing an attacker with only the profile PIN from lowering the protection of elevated entries.
+
+**Limits:**
+
+Tiered unlock is defense in depth, not a new root of trust. An attacker with full device compromise at the hardware level is not meaningfully hindered by the second PIN. The mechanism protects against attackers who have obtained the profile PIN but lack the elevation PIN, physical access during an elevated session, or the ability to observe two independent authentications.
 
 ---
 
@@ -651,6 +724,102 @@ Supercap Sizing:
 | **MITM (sync)** | Mutual TLS, certificate pinning |
 | **Rollback** | Version numbers in AAD, monotonic counters |
 | **Malformed input** | Strict parsing, length limits, fuzzing |
+
+---
+
+## Key Recovery
+
+### The Recovery Problem
+
+KeyMaster is built around hardware custody of secrets: a forgotten PIN, a lost device without backup, or a damaged device without backup means the vault is gone. This is the correct trade-off for a device designed to resist compromise — anything that lets the legitimate user recover also creates a path for an attacker — but it means recovery paths need to be deliberate and explicit, not accidental.
+
+KeyMaster supports three recovery tiers with different trust and threat-model properties. Users can mix and match.
+
+### Tier 1: Paired-Device Sync (Default)
+
+KeyMaster is sold in pairs. The two devices sync continuously via direct USB connection, local network, or downstream connection through a host. Every change on one replicates to the other; the backup is never more than a sync cycle stale.
+
+**Handles:**
+- Primary device lost, stolen, or damaged: the backup becomes the new primary; buy a replacement to pair as the new backup.
+- PIN still known but device compromised: factory-reset the compromised unit, re-pair from the backup.
+
+**Does not handle:**
+- PIN forgotten on both devices (PINs are typically the same on paired devices).
+- Both devices lost simultaneously (e.g., house fire, coordinated theft).
+
+### Tier 2: Additional Hardware Backup
+
+Users may purchase additional single units as extra backups — held in a safe-deposit box, at a trusted relative's house, at an office safe. These units sync when they can reach each other and hold the last-synced state otherwise.
+
+**Handles:**
+- Tier-1 cases plus geographic dispersion.
+- Loss of multiple units if at least one survives.
+
+**Does not handle:**
+- PIN forgotten across all devices.
+- Coordinated access to all backup locations.
+
+### Tier 3: Social Recovery via Shamir's Secret Sharing
+
+For catastrophic scenarios — all hardware lost, PIN forgotten on all devices, or a user who prefers recovery through trusted peers over personal hardware — KeyMaster supports **threshold secret sharing** of a recovery key, using Adi Shamir's 1979 construction (Shamir, 1979, *Communications of the ACM* 22(11), 612-613).
+
+**Mechanism:**
+
+1. During setup, the user generates a recovery key and splits it into N shares using Shamir's scheme (polynomial interpolation over a finite field).
+2. Each share is distributed to a trusted peer — a family member, a friend, a lawyer — or stored in a geographically-separated secure location.
+3. Any M of the N shares can reconstruct the recovery key. Fewer than M shares reveal nothing about the key (information-theoretic guarantee, not merely computational).
+4. The user maintains a **recovery blob** containing the vault's Master Vault Keys wrapped with a recovery-derived KEK. The blob can be stored openly — on cloud storage, on a factory-reset KeyMaster, on a USB drive — because it is ciphertext that only the recovery key can decrypt.
+5. To recover: reconstruct the recovery key from M shares, combine it with a factory-reset KeyMaster and the recovery blob, and the vault is restored. The user sets a new PIN and resumes operation.
+
+**Shares as paper or as devices:**
+
+Each share can be stored in two ways:
+
+1. **Paper shares.** The share is printed or written as a short, human-readable recovery phrase and given to the trusted peer, who stores it in whatever way suits them: a safe, a safe-deposit box, a sealed envelope with a lawyer, or simply a labeled piece of paper in a drawer. Recovery requires the user to physically collect enough shares and transcribe them into a factory-reset KeyMaster.
+
+2. **Device-held shares.** If a trusted peer has their own KeyMaster, their share can be stored directly in their device, protected by their own PIN and by the same tamper resistance protecting the rest of their vault. When the user needs to recover, the two KeyMasters coordinate over a direct connection (USB-to-USB, local network, or through a shared relay), reconstructing the key without any paper handling. The peer's KeyMaster can enforce release policies of its own: explicit confirmation from the peer, a cooling-off period, notification to the other share-holders, or any combination the peer configures.
+
+The two modes can also mix. A user might give paper shares to an elderly relative and a safe-deposit box, while holding device-based shares with a spouse, a best friend, and a business partner. Whatever fits the user's network of trusted peers and their technical comfort.
+
+**Typical configurations:**
+
+| N | M | Example |
+|---|---|---------|
+| 3 | 2 | Small family; any two of three can recover |
+| 5 | 3 | Extended family or friends; majority required |
+| 5 | 3 | Mixed: user, spouse, lawyer, safe-deposit box, trusted friend |
+| 7 | 4 | Conservative; tolerates loss of three shares |
+
+**Properties:**
+
+- **No single point of failure.** Fewer than M shares reveal nothing, even if combined with the ciphertext recovery blob.
+- **No online service needed.** Recovery is cryptographic, not custodial. There is no company to subpoena or compromise.
+- **Social, not technical.** Share-holders need only keep their share safe. They don't run software, maintain infrastructure, or understand the cryptography.
+- **Survives the user.** If the user becomes incapacitated or dies, the threshold of trusted parties can recover the vault — consistent with the bequeathing model (see below).
+
+**Threat model limitations:**
+
+- Shares need to be stored *safely*. A share on a sticky note defeats the protection.
+- Share-holders can collude. Choose them with that in mind; geographic, social, and professional diversity make collusion harder.
+- Social recovery is, by design, a bypass of normal PIN protection. Anyone with M shares plus the recovery blob can restore the vault without the original PIN. This is a feature (the user can recover from PIN loss) and a trade-off (a coordinated adversary with enough shares can recover without the PIN) that the user accepts when opting in.
+
+**Recommended default for users who want social recovery as a safety net:**
+
+N=5, M=3, with shares held by:
+
+1. The user, in a personal safe at home
+2. A trusted family member or close friend
+3. A second trusted family member or close friend
+4. A geographically-separated secure location (safe-deposit box, office safe)
+5. A professional (lawyer, accountant) under a clear written arrangement
+
+This tolerates the loss of any two shares, requires three to recover, and distributes across personal, social, and professional axes so no single category of compromise suffices.
+
+### Tier 4: Factory Reset (Last Resort)
+
+If all recovery mechanisms fail or were never configured, factory reset wipes the device entirely. The vault is lost; the device becomes newly usable.
+
+This is the KeyMaster equivalent of "I lost my keys and have to rekey the locks." Whether this is acceptable or catastrophic depends on what's in the vault. For users treating KeyMaster as a convenience layer over regularly-changed passwords, a reset loses a few weeks of updates. For users storing crypto wallet seeds or critical long-term keys, it is terminal. Recovery-tier choice should reflect that assessment.
 
 ---
 

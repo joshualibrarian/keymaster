@@ -107,6 +107,12 @@ KeyMaster uses standard protocols:
 
 No drivers needed on any modern OS. Works on Windows, Mac, Linux, Android, iOS (with adapter). Works on locked-down corporate machines where only smart cards are allowed.
 
+**6. Backup Is the Default, Not an Afterthought**
+
+KeyMaster is sold in pairs at a discount over single units. Every new user starts with two devices — a primary and a synced backup — because the failure mode we see over and over with other security tools is "I meant to back up, but I never got around to it." By making backup part of the purchase rather than a later chore, we remove the most common way for users to lose their secrets.
+
+The two units sync continuously when they can reach each other. If one is lost or damaged, the other is already current. If you want a third or fourth backup (safe deposit box, trusted friend's house, office safe), you can buy additional single units — but nobody starts the journey with just one.
+
 ---
 
 ## How It Works
