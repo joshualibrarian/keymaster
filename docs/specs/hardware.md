@@ -529,7 +529,9 @@ KeyMaster v1 is not expected to carry formal certification, but the hardware sho
 - Provide a hardware RNG with health testing per NIST SP 800-90B.
 - Map tamper response to the physical-security levels certification expects.
 
-This is a **design goal, not a v1 deliverable.**
+**Inherit assurance from the secure element.** A pre-certified secure element (for example an NXP EdgeLock SE05x, which is Common Criteria EAL6+-based and FIPS 140-2/3 validated, with a public datasheet and no NDA) carries its own multi-million-dollar evaluation. Anchoring the device secret in such a part means the hardest, most expensive assurance is the silicon vendor's cost, not ours. Prefer turnkey, public-datasheet, no-NDA secure elements to avoid the NDA-gated datasheets and unpublished minimum-order quantities that gate the highest-security programmable smart-card ICs.
+
+This is a **design goal, not a v1 deliverable.** Device-level FIPS 140-3 / Common Criteria is best treated as a funded fast-follow after v1: the CMVP validation queue alone has recently run 1.5–2 years, so committing to it for v1 risks stranding inventory behind a certification backlog.
 
 ---
 

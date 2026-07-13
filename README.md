@@ -5,7 +5,9 @@
 
 KeyMaster is a small, open hardware USB device designed to be the practical foundation for everyday secure identity: passwords, SSH/GPG keys, OTPs, wallet seeds, and personal data. It's batteryless—powered entirely by the USB port it plugs into—and aims to be both trustworthy and convenient, usable on any host from locked-down corporate desktops to borrowed laptops, phones, and even smart-card readers.
 
-**Status:** Concept and design-in-progress. We're looking for an engineering partner and early collaborators to turn this into hardware and firmware.
+It is not just a password store. It is a secure interaction point for credentials, keys, and approvals: one device, under your physical control, where you log in, sign, authenticate, and hold your secrets.
+
+**Status:** Concept and design stage, seeking funding and an engineering partner. We have detailed design specifications and are looking for the capital and the collaborators to turn them into hardware and firmware. If you are an investor or an engineering firm, this repository is written for you: start here, then follow the links below into the depth you need.
 
 ---
 
@@ -42,6 +44,16 @@ Our digital lives are a mess of passwords, keys, and secrets scattered across de
 - Your backup strategy is "hope nothing breaks"
 
 **KeyMaster solves this** by being a single, open, trustworthy device that adapts to any environment while keeping your secrets under your physical control.
+
+---
+
+## The Opportunity
+
+People have already proven they will pay for hardware that keeps their secrets off the network. Crypto hardware wallets are a $350–450M market growing toward billions. Privacy phones routinely raise seven figures on crowdfunding (BraX3 raised about $1.9M, the Librem 5 about $2.1M). Flipper Zero turned a $60K goal into $4.8M and has sold over a million units. The broader privacy-technology market is projected to grow from about $3.2B in 2024 to roughly $28B by 2034.
+
+Every one of those products solves a single slice: a wallet holds seed phrases, a security key does FIDO2, a privacy phone hardens the mobile stack. The result is that security-conscious people carry several single-purpose devices and juggle fragmented workflows. What no one has shipped is the integration, one device under the user's physical control that unifies credentials, keys, OTP, wallet seeds, passkeys, and context-aware host behavior.
+
+That gap is what KeyMaster fills. See the [full market analysis](docs/vision.md#why-the-market-is-ready) for the sourced figures and the funding picture below for what building it takes.
 
 ---
 
@@ -230,6 +242,24 @@ See [docs/specs/security.md](docs/specs/security.md) for the full cryptographic 
 
 ---
 
+## What It Will Take to Build
+
+KeyMaster is at the design stage, and turning it into a shipping product is a hardware program, not a weekend project. We would rather state the real scale than understate it.
+
+A realistic path to a shipping v1 is roughly **$4–7M over 24–36 months**: a dual-processor secure device carried through prototype, design-for-manufacture, baseline certification (FCC, CE, FIDO2), and a first production run. A lean effort that blends offshore talent and defers heavy certification could reach a pilot for around $2–3.5M. Pursuing government-grade device certification (FIPS 140-3, Common Criteria) for v1 pushes the ceiling toward $8–12M and adds one to two years of certification queue, which is why we treat it as a later milestone rather than a v1 gate.
+
+**The near-term ask:** a seed raise toward the **$4–6M** range funds the path to a self-certified v1 pilot. The fully certified, at-scale product realistically spans a seed round plus a Series A.
+
+We de-risk deliberately:
+
+- **Inherited assurance.** KeyMaster's high-security certifications come from a pre-certified secure element, so the multi-million-dollar chip evaluation is the silicon vendor's cost, not ours.
+- **Ship on self-certification.** v1 targets FCC and CE self-declaration (no radio, so no costly RF path) plus FIDO2, with FIPS 140-3 and Common Criteria as funded fast-follows.
+- **Honest about the risks.** The dominant ones are certification timelines, the depth of two full firmware stacks, and the economics of a machined-stainless device sold as a pair. These are laid out in the [engineering brief](docs/engagement.md) and the [hardware spec](docs/specs/hardware.md).
+
+Hardware budgets are famously optimistic; these figures already carry contingency, and the specifications behind them are detailed enough for an engineering firm to quote against rather than guess.
+
+---
+
 ## Why Open Source Matters
 
 **Security through transparency:**
@@ -259,7 +289,8 @@ See [docs/specs/security.md](docs/specs/security.md) for the full cryptographic 
 
 | Document                                | Description                                 |
 | --------------------------------------- | ------------------------------------------- |
-| [Vision](docs/vision.md)                | Full philosophy and "why this exists"       |
+| [Vision](docs/vision.md)                | Product thesis, market context, and philosophy |
+| [Engineering Partners](docs/engagement.md) | Scope of work, deliverables, and acceptance criteria for a build partner |
 | [Hardware Spec](docs/specs/hardware.md) | Engineering-quotable hardware specification |
 | [Software Spec](docs/specs/software.md) | Firmware and software architecture          |
 | [Security Spec](docs/specs/security.md) | Cryptographic design and threat model       |

@@ -4,6 +4,14 @@ This document explains the "why" behind KeyMaster: the problem we're solving, th
 
 ---
 
+## The Product Thesis
+
+KeyMaster is a portable, open hardware identity device that keeps sensitive operations under the user's physical control while staying practical in everyday workflows.
+
+It is not just a password store. It is a secure interaction point for credentials, keys, and approvals: the place where you log in, sign, authenticate, and hold your secrets, on a device you own rather than on infrastructure you rent or a host you can't trust.
+
+---
+
 ## The Problem
 
 ### Your Digital Identity Is Fragmented
@@ -193,15 +201,17 @@ Your backup KeyMaster lives in a safe deposit box. Your tertiary backup is at a 
 
 Consumer awareness of digital privacy and personal security has shifted dramatically. What was once a niche concern for security professionals is now a mainstream buying motivation, and the market is responding with real products and real revenue.
 
-**The privacy hardware wave is already here, and the numbers prove it:**
+**The privacy hardware wave is already here, and the numbers show it:**
 
-- **Privacy phones** are a proven category. Brax Technologies' BraX3 became the most-crowdfunded smartphone on Indiegogo, raising over $1.8M and shipping 5,500+ units. Their follow-up Open Slate tablet launched on Indiegogo with strong early demand. Purism's Librem 5 privacy phone raised over $1.5M in crowdfunding. The Mudita Kompakt, a privacy-focused minimalist phone, doubled its Kickstarter goal with €353K from backers across 34 countries.
-- **Crypto hardware wallets** are a $348M market (2024), projected to reach $2.9B by 2032. Ledger generated $181M in revenue; Trezor hit $47M with a 600% sales spike when Bitcoin approached $100K. Foundation Devices raised $7M in seed funding for its air-gapped Passport wallet. Consumers have proven they will pay a premium for a physical device that keeps secrets off the network.
-- **Hardware security keys** (NitroKey, OnlyKey, YubiKey) have moved from developer curiosity to enterprise procurement lists. Nitrokey has grown to tens of thousands of users across 120+ countries while remaining entirely self-funded, with no outside investors needed.
-- **Security tools** have become mainstream products. Flipper Zero raised $4.8M on Kickstarter (on a $60K goal), sold 500,000+ units, and was on track for $80M in revenue by 2023. Hak5 has been profitably selling security hardware since 2005. These are no longer fringe products; they are retail businesses.
-- **Privacy routers and home automation** are now retail categories. Products like Home Assistant Amber (privacy-respecting home automation) sell through platforms like Crowd Supply, which boasts twice the success rate of Kickstarter for open-source hardware.
+- **Privacy phones** are a proven category. Brax Technologies' BraX3 privacy phone raised about $1.9M from 4,855 backers (770% of its goal), and Brax reports 5,500+ units shipped; its follow-up Open Slate tablet raised over $900K from 1,100+ backers. Purism's Librem 5 raised about $2.1M against a $1.5M goal. The Mudita Kompakt, a privacy-focused minimalist phone, more than doubled its Kickstarter goal with €353K from 1,078 backers across 34 countries.
+- **Crypto hardware wallets** are an established market, estimated at roughly $350–450M in 2024 and forecast to reach several billion dollars by the early 2030s. Trezor reported a 600% weekly sales spike as Bitcoin approached $100K in late 2024; Ledger reported 2025 as its first year reaching triple-digit-million revenue; Foundation Devices raised a $7M seed (led by Polychain) for its air-gapped Passport wallet. Consumers have proven they will pay a premium for a physical device that keeps secrets off the network.
+- **Hardware security keys** (Nitrokey, OnlyKey, YubiKey) have moved from developer curiosity to enterprise procurement. Nitrokey has grown to tens of thousands of users across 120+ countries while remaining independent of venture investors.
+- **Security tools** have become mainstream retail products. Flipper Zero raised $4.8M on Kickstarter (on a $60K goal) and has since sold over a million units. Hak5 has been selling penetration-testing hardware since the late 2000s. These are retail businesses, not fringe projects.
+- **Privacy routers and home automation** are now retail categories. Products like Home Assistant Yellow (privacy-respecting home automation) sell through platforms like Crowd Supply, which reports a campaign success rate roughly twice that of Kickstarter for open-source hardware.
 
-**The broader privacy technology market confirms the trend.** The global Privacy Enhancing Technologies market is projected to grow from $3.2B (2024) to $28.4B by 2034, a 24.5% CAGR. Regulatory pressure (GDPR, CCPA), rising consumer awareness, and IoT proliferation are all accelerating demand. Cybersecurity startup investment surged in 2025, and venture firms like Andreessen Horowitz are backing privacy-first companies (Cape, a privacy phone service, raised $61M).
+**The broader privacy technology market confirms the trend.** The global Privacy Enhancing Technologies market is estimated at about $3.2B in 2024 and projected to reach roughly $28B by 2034, a mid-20s-percent CAGR (Market.us, corroborated by Grand View Research). Regulatory pressure (GDPR, CCPA), rising consumer awareness, and IoT proliferation are all accelerating demand. Cybersecurity startup investment surged in 2025 to its strongest year since 2021 (roughly $18B, up 26% year over year, per Crunchbase), and venture firms including Andreessen Horowitz are backing privacy-first companies: Cape, a privacy-focused mobile carrier, has raised $191M, including a $100M round in 2026 at a $900M valuation.
+
+*(Figures are as of early 2026 and drawn from company announcements, crowdfunding pages, and market-research sources; the strongest single data point, the PET market size, is independently corroborated across firms.)*
 
 **What all these products have in common:** each solves one slice of the personal security problem. A hardware wallet protects seed phrases. A security key handles FIDO2. A privacy phone hardens the mobile stack. Users who care about security end up carrying multiple single-purpose devices and managing multiple fragmented workflows.
 
@@ -229,6 +239,26 @@ For KeyMaster, this means:
 - Secure element internals: Closed (silicon vendor limitation)
 
 We use secure elements from vendors like STMicro and NXP. Their silicon is closed, but the interface is documented and the behavior is auditable. This is a pragmatic trade-off: certified tamper resistance requires specialized fabrication that open-source hardware can't replicate.
+
+---
+
+## Scope and Honesty
+
+KeyMaster aims to materially improve security and usability, not to claim impossible guarantees. We would rather state our limits plainly than oversell, because a security product that overpromises loses the trust it depends on.
+
+What KeyMaster is designed to do:
+
+- Raise an attacker's cost and uncertainty, so that compromising your secrets is expensive, targeted, and physical rather than cheap and remote.
+- Reduce the blast radius during a compromise or coercion, through profile isolation, reduced-exposure profiles, and a device that reveals nothing on an untrusted host.
+- Provide backup and recovery paths a normal person can understand and actually use.
+
+What it does not claim:
+
+- It is not proof against a nation-state lab that can attack the silicon directly (see the security spec's threat model). No commercially feasible device is.
+- It does not make a weak, reused PIN strong; it makes guessing expensive and finite.
+- Its "dead man's switch" and location-secrecy features are safety nets with stated limits, not cryptographic guarantees.
+
+Every claim in these documents is meant to survive scrutiny by a security professional. Where a feature has a limit, the specifications state it.
 
 ---
 
