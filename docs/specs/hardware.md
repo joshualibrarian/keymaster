@@ -249,7 +249,7 @@ The AP runs Linux for the composite USB gadget, the vault-presentation daemon, s
 | ------------- | ---------- | ------------------------------------------------ |
 | MicroSD slot  | Up to 1 TB | User data, encrypted partitions                  |
 
-> **No onboard M.2 NVMe.** An M.2 2230 module (22 × 30 mm) does not fit this form factor. More *onboard* capacity comes from a higher-capacity **eMMC or UFS** part, which scales inside the same small BGA footprint (256 GB / 512 GB and up), so the Pro model gains storage with no extra board space. More *bulk or high-speed* storage comes from the MicroSD slot and from **external drives on the USB-C port** via the encrypting-bridge path (see §5, High-Power Domain), not from an onboard module.
+> Onboard capacity is set by the eMMC/UFS part (higher-capacity on the Pro model, same footprint). For larger or higher-speed storage, users add a MicroSD card or an external drive on the USB-C port through the encrypting-bridge path (see §5, High-Power Domain).
 
 ---
 
