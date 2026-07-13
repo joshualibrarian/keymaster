@@ -117,7 +117,7 @@ This means:
 KeyMaster uses standard protocols:
 - USB CCID for smart-card operations
 - USB HID for keyboard emulation
-- USB Mass Storage for file access
+- USB Mass Storage for bulk and external drives (the vault itself is presented through a host-side helper, not raw mass storage)
 - USB Ethernet for network features
 
 No drivers needed on any modern OS. Works on Windows, Mac, Linux, Android, and iPhone/iPad (all USB-C as of recent models). Works on locked-down corporate machines where only smart cards are allowed.
@@ -181,6 +181,8 @@ Clone units stay in sync whenever they can reach each other:
 ---
 
 ## Use Cases
+
+A few representative sketches follow; see [examples.md](../examples.md) for the full set of detailed scenarios.
 
 ### The Digital Nomad
 

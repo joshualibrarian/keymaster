@@ -60,12 +60,13 @@ KeyMaster uses two processors with distinct responsibilities:
 
 ### Operating Modes
 
+A "mode" describes what the host is allowed to see (exposure). It maps onto the two power domains: **Minimal Mode** runs on the security MCU alone with the application processor powered off (so it also covers the low-power smart-card-reader case), while **Composite** and **Backup** run with the AP powered.
 
-| Mode                | Power | MCU    | AP     | USB / Net Functions            | Trigger                             |
-| ------------------- | ----- | ------ | ------ | ------------------------------ | ----------------------------------- |
-| **Low-Power**       | ≤ ~60 mA | Active | Off | CCID, HID keyboard, FIDO2 only | Smart-card adapter or low-power host (budget set by hardware spec §7) |
-| **High-Power**      | Full  | Active | Active | Full composite + vault + net   | Adequate power + unlock             |
-| **Backup / Headless** | Full | Active | Active | Sync port only, **vault stays LOCKED** | Designated-backup unit powered + networked (safe, dock, or host) |
+| Mode                  | Host sees                                | AP (power)            | Trigger                             |
+| --------------------- | ---------------------------------------- | --------------------- | ----------------------------------- |
+| **Minimal**           | CCID, HID keyboard, FIDO2 only; no storage | Off (low-power domain, ≤ ~60 mA; budget per hardware spec §7) | Untrusted/unknown host, or a power-limited source such as a smart-card reader |
+| **Composite**         | Full composite + vault + network         | On (high-power domain) | Trusted host, adequate power, after unlock |
+| **Backup (Headless)** | Sync port only, **vault stays LOCKED**   | On                    | Designated-backup unit powered + networked (safe, dock, or host) |
 
 > **Headless (locked) sync is deliberate.** A backup unit, in a safe, a drawer, or plugged into a home machine, must replicate **without anyone entering a PIN**. This is cryptographically safe: sync moves *ciphertext*, authenticated by device certificates (device-bound keys, not PIN-derived). In this mode the device exposes **only** the mutually-authenticated sync port, with no web UI and no management services (smallest possible listening surface for an always-on, LAN-resident unit).
 
@@ -286,7 +287,7 @@ Secure RAM (TrustZone, 32 KB):
 
 - **Processor:** USB3-class, quad Cortex-A53/A55 (or better), with a hardware crypto engine that supports software-invisible keys and secure boot. See the hardware spec's AP class for requirements and example parts (e.g. i.MX 8M Plus / i.MX 95 / RK3568 / STM32MP25). The design partner chooses; this spec does not pin a part.
 - **RAM:** 512 MB preferred (256 MB minimum)
-- **Storage:** 8-16 GB eMMC for OS and tools
+- **Storage:** 8-16 GB onboard, UFS preferred (eMMC fallback), for OS and tools
 
 ### Operating System
 
@@ -367,7 +368,7 @@ Virtual Layout:
 
 Visibility Rules:
   Visible Groups = Profile.allowed_groups ∩ Host.allowed_groups
-  Visible Entries = Entries in visible groups with recipient blob for active profile
+  Visible Entries = Entries in visible groups the active profile can open (a sealed key in the recipient bag decrypts with the profile's private key)
 ```
 
 **FUSE Operations:**
@@ -503,15 +504,17 @@ Configuration Descriptor:
 
 ### Mode-Specific Configurations
 
-**Low-Power Mode (Smart Card Adapter):**
+**Minimal Mode (AP off; also the smart-card-reader case):**
 
 ```
-Interfaces: CCID + HID only
-Power: 100mA max
-Functions: PIN entry, credential auto-type, CCID operations
+Interfaces: CCID + HID keyboard + FIDO2
+Power: ~60 mA electrical budget (see hardware spec §7); the USB descriptor may
+       request up to 100 mA (bMaxPower), which is the enumeration ceiling, not
+       the steady-state draw
+Functions: PIN entry, credential auto-type, CCID operations, passkey/FIDO2 auth
 ```
 
-**High-Power Mode (Full Composite):**
+**Composite Mode (AP on, full function):**
 
 ```
 Interfaces: All

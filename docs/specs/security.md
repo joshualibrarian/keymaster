@@ -106,7 +106,7 @@ This document specifies the cryptographic design and threat model for KeyMaster.
 │      ▼                          ▼                                    │
 │  ┌───────┐                ┌───────────┐                              │
 │  │  PIN  │                │    DRS    │  Device Root Secret          │
-│  └───┬───┘                │  (in SE)  │  (256-bit, hardware-bound)   │
+│  └───┬───┘                │ SE / MCU  │  (256-bit, hardware-bound)   │
 │      │                    └─────┬─────┘                              │
 │      ▼                          │                                    │
 │  ┌────────────────────┐         │                                    │
@@ -152,12 +152,13 @@ This document specifies the cryptographic design and threat model for KeyMaster.
 | Key | Size | Derivation | Storage | Lifetime |
 |-----|------|------------|---------|----------|
 | **PIN** | Variable | User input | Never stored | Transient (in RAM during unlock) |
-| **Salt** | 256 bits | Random | Per-profile in flash | Permanent (regenerate to rotate PIN) |
-| **DRS** | 256 bits | SE RNG or MCU HUK | SE or OTP fuses | Device lifetime |
+| **Salt** | 256 bits | Random | **One device-wide salt**, in flash | Device (not per-profile; see Deniable Encryption) |
+| **DRS** | 256 bits | SE RNG or MCU HUK | SE, or MCU split-secret (fuses + flash + EEPROM) | Device lifetime |
 | **PK** | 256 bits | Argon2id(PIN, salt) | Never stored | Transient |
 | **KEK** | 256 bits | HKDF(PK \|\| DRS, "KEK") | Never stored | Session (while unlocked) |
 | **MVK** | 256 bits | Random | Wrapped in flash | Profile lifetime |
-| **DEK** | 256 bits | Random | Wrapped per-entry | Entry lifetime |
+| **Profile keypair** | X25519 | Random | Private key in the profile root (MVK-protected) | Profile lifetime |
+| **DEK** | 256 bits | Random | Sealed to recipient public keys (recipient bag) | Entry lifetime |
 
 ### Key Properties
 
@@ -168,9 +169,9 @@ This document specifies the cryptographic design and threat model for KeyMaster.
 - Binds all encryption to this specific hardware
 
 **PIN Key (PK):**
-- Derived from user PIN using Argon2id
-- High memory cost (64 MB) to resist GPU/ASIC attacks
-- Unique salt per profile prevents rainbow tables
+- Derived from user PIN using Argon2id, with parameters tuned to the security MCU
+- Memory-hardness is a backstop, not the primary defense (see PIN Protection)
+- One device-wide salt; precomputation is prevented by the device-bound DRS, not by per-profile salts (per-profile salts would be countable and would leak the profile count — see Deniable Encryption)
 
 **Key Encryption Key (KEK):**
 - Combines PK (user knowledge) with DRS (device possession)
@@ -180,12 +181,15 @@ This document specifies the cryptographic design and threat model for KeyMaster.
 **Master Vault Key (MVK):**
 - One per profile (enables cryptographic isolation)
 - Wrapped with KEK and stored in flash
-- Used to wrap/unwrap per-entry DEKs
+- Protects the profile's own objects, including its private key
+
+**Profile keypair (X25519):**
+- One per profile; the public key is used to seal shared entries to this profile
+- The private key lives in the profile root, protected by the MVK
 
 **Data Encryption Key (DEK):**
 - One per entry
-- Enables sharing: entry can have multiple recipient blobs
-- Each recipient blob contains DEK wrapped by that profile's MVK
+- For access, the DEK is **sealed to each recipient profile's public key** in an anonymous, decoy-padded recipient bag (no profile identifiers), which enables cross-profile and cross-device sharing (see Entry Encryption)
 
 ---
 

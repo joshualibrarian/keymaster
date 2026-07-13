@@ -8,7 +8,7 @@ This document provides technical hardware requirements for engineering teams to 
 
 KeyMaster is a USB-powered hardware password manager and data vault with:
 
-- **Dual-processor architecture:** a small always-on **security MCU** plus a higher-power **application processor (AP)**. §3 explains why the two are kept separate.
+- **Dual-processor architecture:** a small always-on **security MCU** plus a higher-power **application processor (AP)**. §4 explains why the two are kept separate.
 - Two power domains (low-power and high-power)
 - On-device PIN entry and e-paper display
 - Smart-card, FIDO2/passkey, and keyboard emulation
@@ -92,9 +92,9 @@ The internal cavity holds a keypad electrode layer, the e-paper panel, and a log
                     │  └─────────┘   │           │            │   │
                     │       │        │  ┌────────▼─────────┐  │   │
                     │       │        │  │ Storage          │  │   │
-   MicroSD ─────────┤───────┼───────►│  │ - eMMC (OS)      │  │   │
+   MicroSD ─────────┤───────┼───────►│  │ - UFS/eMMC (OS)  │  │   │
                     │       │        │  │ - MicroSD        │  │   │
-                    │       │        │  │ - UFS or eMMC    │  │   │
+                    │       │        │  │ - ext USB drive  │  │   │
                     │       │        │  └──────────────────┘  │   │
                     │       │        └────────────────────────┘   │
                     │       │                                     │
@@ -226,7 +226,7 @@ The AP runs Linux for the composite USB gadget, the vault-presentation daemon, s
 - **NXP i.MX 8M Plus:** quad A53, two USB 3.0 dual-role, CAAM crypto (supports "black keys" usable-but-invisible-to-software), HAB secure boot, strong mainline, long industrial availability. Proven, security-oriented.
 - **NXP i.MX 95:** newer; A55, USB3/PCIe, on-die EdgeLock secure enclave. Strongest security pedigree.
 - **Rockchip RK3568:** quad A55, dual USB3, PCIe/SATA, crypto block. Best cost/capability; consumer-grade secure-boot ecosystem and shorter availability guarantees.
-- **STMicro STM32MP25:** A35 + integrated M33, USB3, ST security IP. Mirrors the two-processor model on one die (a consolidation option; note the physical-isolation trade-off in §3).
+- **STMicro STM32MP25:** A35 + integrated M33, USB3, ST security IP. Mirrors the two-processor model on one die (a consolidation option; note the physical-isolation trade-off in §4).
 
 > **Why not a cheap USB-2 AP?** Presenting fast *encrypted external storage* to a host requires a USB3 device controller in the AP; you cannot add speed with a downstream bridge without moving that data outside the AP's encryption path. USB3 is therefore required *for the encrypting-bridge capability*. The everyday vault itself is small and runs fine at USB 2.0.
 
@@ -506,9 +506,8 @@ Both SKUs share a PCB; Pro populates the secure element, adds the tamper mesh, a
 | USB       | MCU        | Upstream (FS/HS device) | CCID / HID keyboard / FIDO2 in low-power mode |
 | UART      | MCU ↔ AP   | Internal bridge       | 115200+ baud                            |
 | USB       | AP         | Hub + gadget + host   | USB3-class; host role drives external drive / Ethernet adapter |
-| SDIO      | AP         | eMMC                  | 4-bit or 8-bit                          |
+| UFS/eMMC  | AP         | Onboard flash         | UFS preferred, eMMC fallback; higher capacity on Pro, same footprint |
 | SDIO      | AP         | MicroSD               | 4-bit                                   |
-| SDIO/eMMC | AP         | eMMC / UFS (onboard)  | Higher capacity on Pro; same footprint  |
 
 ---
 
