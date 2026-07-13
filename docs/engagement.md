@@ -38,7 +38,7 @@ A batteryless USB-C device with on-device PIN entry and an e-paper display, buil
 - **Security MCU (always on):** PIN entry, the device secret, vault cryptography, and the USB smart-card (CCID), HID keyboard, and FIDO2 interfaces. Must run standalone on smart-card-reader power, with the application processor off.
 - **Application processor (higher power, Linux):** vault presentation to trusted hosts, backup/sync, the composite USB gadget, and line-rate inline encryption of external media.
 
-Physical: stainless enclosure, 12-key recessed capacitive keypad, e-paper display, two fully dual-role USB-C ports with power pass-through, tamper detection with key zeroization, a supercapacitor-backed real-time clock, and tiered secret storage (fuse/split-secret on the base model, a secure element on the Pro model). Sold as a pair.
+Physical: durable metal enclosure, 12-key recessed capacitive keypad, e-paper display, two fully dual-role USB-C ports with power pass-through, tamper detection with key zeroization, a supercapacitor-backed real-time clock, and tiered secret storage (fuse/split-secret on the base model, a secure element on the Pro model). Sold as a pair.
 
 See the hardware spec for the full requirement set.
 
@@ -66,7 +66,7 @@ A design is on track when it demonstrates:
 - A stable inline "phone + charger + KeyMaster" workflow (device powered by the charger, phone charged through it, data to the phone).
 - A card-emulation-mode power budget compatible with constrained-power adapter operation.
 - An explicit trust-boundary architecture with a defined secure-boot and debug-lockout posture.
-- A stainless enclosure with an internal thermal path adequate for the application processor under load.
+- A durable metal enclosure with an internal thermal path adequate for the application processor under load (material choice, and its hardness/thermal trade-off, is part of the design).
 - Tamper detection that zeroizes the device secret, with thresholds tuned to tolerate real-world abuse (drop, cold, power dropouts) without false-triggering.
 
 ---

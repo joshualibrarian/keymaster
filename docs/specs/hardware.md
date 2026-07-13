@@ -28,9 +28,9 @@ KeyMaster is a USB-powered hardware password manager and data vault with:
 
 | Parameter  | Specification                                |
 | ---------- | -------------------------------------------- |
-| Dimensions | ~2" × 3" × 0.6" (50 × 75 × 15 mm)        |
-| Weight     | Modest heft; the stainless shell's mass is part of the physical-security story |
-| Material   | Stainless-steel shell, polycarbonate bezel (see §10) |
+| Dimensions | ~2" × 3" × ~0.7" (50 × 75 × ~18 mm); final thickness is a mechanical-design decision, not a hard target |
+| Weight     | Modest heft; the metal shell's mass is part of the physical-security story |
+| Material   | Durable metal shell, polycarbonate bezel (see §10) |
 
 ### Face A: Keypad
 
@@ -50,18 +50,23 @@ KeyMaster is a USB-powered hardware password manager and data vault with:
 
 ### Edges
 
+Only three items need edge access: two USB-C ports and the MicroSD slot. Everything else (PD controllers, USB hub, crosspoint switch, and so on) is internal. There is ample edge space.
 
-| Edge   | Components                                   |
-| ------ | -------------------------------------------- |
-| Top    | USB-C Port A                                 |
-| Bottom | USB-C Port B, MicroSD slot                   |
-| Sides  | Reserved for vents, indicators               |
-| Corner | Keychain attachment point (reinforced metal) |
+| Edge            | Components                                   |
+| --------------- | -------------------------------------------- |
+| Bottom (short)  | USB-C Port A                                 |
+| Side (long)     | USB-C Port B, MicroSD slot                   |
+| Top (short)     | Keychain attachment point (reinforced metal) |
+| Other side      | Reserved for indicators/vents                |
 
 ### Indicators
 
 - 1-2 LEDs visible through bezel edge (power, status)
 - E-paper provides detailed status when powered
+
+### Mechanical Integration
+
+The internal cavity holds a keypad electrode layer, the e-paper panel, and a logic board carrying two processor domains, the USB subsystem, storage, and the supercapacitors. This is a dense build: a small Linux computer plus a security core in a keychain-sized body. Expect modern packaging (HDI/micro-via PCB, package-on-package or a compact system-on-module for the application processor) and a deliberate component-height plan so the tall parts (supercapacitors, USB-C connectors) clear the display and keypad planes. The XY footprint is comfortable; the ~18 mm thickness gives the internal stack room, and final thickness is set in mechanical design.
 
 ---
 
@@ -89,7 +94,7 @@ KeyMaster is a USB-powered hardware password manager and data vault with:
                     │       │        │  │ Storage          │  │   │
    MicroSD ─────────┤───────┼───────►│  │ - eMMC (OS)      │  │   │
                     │       │        │  │ - MicroSD        │  │   │
-                    │       │        │  │ - NVMe (optional)│  │   │
+                    │       │        │  │ - UFS (Pro opt.) │  │   │
                     │       │        │  └──────────────────┘  │   │
                     │       │        └────────────────────────┘   │
                     │       │                                     │
@@ -159,7 +164,7 @@ KeyMaster must keep wall-clock time across power removal so that **TOTP works on
 | Parameter        | Specification                                                        |
 | ---------------- | ------------------------------------------------------------------- |
 | RTC              | Ultra-low-power (≈ tens–hundreds of nA timekeeping); e.g. RV-3028-class |
-| Backup element   | Dedicated supercapacitor sized for **weeks-to-months** of retention (limit is supercap self-discharge, not RTC draw) |
+| Backup element   | Dedicated supercapacitor sized for **weeks** of retention (the limit is supercap self-leakage, not RTC draw; validate against a real leakage budget, and a low-leakage part is preferred) |
 | Interface        | I2C to security MCU                                                  |
 | Re-sync sources  | Firmware refreshes time opportunistically (network NTP, host helper, host-clock scavenge); manual keypad entry as last resort (see security/software specs) |
 
@@ -238,15 +243,13 @@ The AP runs Linux for the composite USB gadget, the vault-presentation daemon, s
 - Read-only tools/rescue partition
 - Scratch partition for logs/temp
 
-### Bulk Storage (Optional)
-
+### Bulk Storage
 
 | Component     | Size       | Purpose                                          |
 | ------------- | ---------- | ------------------------------------------------ |
 | MicroSD slot  | Up to 1 TB | User data, encrypted partitions                  |
-| M.2 2230 NVMe | Up to 1 TB | Optional high-speed bay (Pro/future; needs an AP with PCIe) |
 
-> Onboard NVMe is an *optional* high-speed storage bay, not a base-model requirement. It depends on the chosen AP exposing PCIe. The encrypting-bridge use case above targets **external** drives on the downstream USB-C port and does not require onboard NVMe.
+> **No onboard M.2 NVMe.** An M.2 2230 module (22 × 30 mm) does not fit this form factor. More *onboard* capacity comes from a higher-capacity **eMMC or UFS** part, which scales inside the same small BGA footprint (256 GB / 512 GB and up), so the Pro model gains storage with no extra board space. More *bulk or high-speed* storage comes from the MicroSD slot and from **external drives on the USB-C port** via the encrypting-bridge path (see §5, High-Power Domain), not from an onboard module.
 
 ---
 
@@ -311,7 +314,7 @@ When acting as USB device to host:
 | ----------- | -------------------------------------------- | -------------------------------- |
 | Always-on   | Type-C controllers, PMIC, RTC + its supercap | Enabled when VBUS present; RTC held by supercap when unpowered |
 | Low-power   | Security MCU, SE, EPD controller, SPI flash  | Always enabled when powered      |
-| High-power  | AP, USB hub, eMMC, MicroSD, optional NVMe    | Load-switched, controlled by the security MCU |
+| High-power  | AP, USB hub, eMMC/UFS, MicroSD               | Load-switched, controlled by the security MCU |
 
 ### Power States
 
@@ -331,7 +334,7 @@ When acting as USB device to host:
 | Component                                   | Purpose                                             |
 | ------------------------------------------- | --------------------------------------------------- |
 | Supercapacitor (1-2 F)                      | E-paper safe refresh on unplug; power for tamper/timeout **key-zeroization** on power loss |
-| Supercapacitor (dedicated, generously sized) | **Timekeeping (RTC) retention for weeks-to-months** while unpowered (see §4) |
+| Supercapacitor (dedicated, low-leakage) | **Timekeeping (RTC) retention for weeks** while unpowered (see §4) |
 | Tamper power                                | Sufficient stored energy to complete **secret wipe** on a tamper event even with USB power removed |
 
 ---
@@ -406,11 +409,11 @@ The enclosure is a serious physical-security component, not just a case. KeyMast
 
 | Component   | Material                            | Notes                                |
 | ----------- | ----------------------------------- | ------------------------------------ |
-| Shell       | **Stainless steel**                 | Chosen over aluminum: far harder to cut/drill/pry, corrosion-resistant, meaningful mass. |
+| Shell       | **Durable metal**                   | Hard to cut/drill/pry, corrosion-resistant, with meaningful mass. Stainless steel, hard-anodized aluminum, or similar; the specific alloy is an engineering decision (see thermal note). |
 | Upper bezel | Polycarbonate or glass-filled nylon | EPD window, RF-transparent for a future radio |
 | Gaskets     | Silicone or EPDM                    | IP52-IP67 sealing                    |
 
-> **Thermal design requirement (consequence of stainless).** Stainless is a poor heatsink (~15× lower thermal conductivity than aluminum), and the USB3-class AP doing line-rate crypto dissipates real power. The design **must** include an internal thermal path, a heat spreader or conductive pad carrying AP heat to a deliberate dissipation surface, rather than relying on the shell as a heatsink. Note also that stainless is harder/costlier to machine; reflect in the BOM.
+> **Material choice interacts with thermal design.** The USB3-class AP doing line-rate crypto dissipates real power, and the shell material affects how that heat is handled. A hard, poor-conductor metal (stainless steel) resists intrusion best but is a poor heatsink (~15× lower thermal conductivity than aluminum), so it needs an internal thermal path, a heat spreader or conductive pad carrying AP heat to a deliberate surface. A good conductor (aluminum) helps dissipate but is softer. Either way, plan for an internal thermal path and treat the hardness/thermal/cost trade-off as part of enclosure design.
 
 ### Environmental
 
@@ -449,12 +452,11 @@ The two SKUs differ mainly in the **tier of physical secret protection**: a "goo
 | Tamper mesh          | Case-open detect                                | Active mesh + case-open                   |
 | RTC + timekeeping supercap | Yes                                       | Yes                                       |
 | SPI-NAND (vault)     | 128 MB                                           | 512 MB                                    |
-| eMMC                 | 8 GB                                             | 16 GB                                     |
+| Onboard storage      | 8-16 GB eMMC                                     | Higher-capacity eMMC/UFS (up to 256 GB+, same footprint) |
 | MicroSD              | Yes                                             | Yes                                       |
-| NVMe M.2 2230        | No                                              | Optional bay (AP-dependent)               |
 | Target price         | \$80-120 *(indicative; see §14)*                 | \$150-200 *(indicative; see §14)*          |
 
-Both SKUs share a PCB; Pro populates the secure element, adds the tamper mesh, and increases flash. Both are sold, and strongly recommended, **as pairs** (backup is fundamental to the design; see README and security spec).
+Both SKUs share a PCB; Pro populates the secure element, adds the tamper mesh, and fits higher-capacity flash. Both are sold, and strongly recommended, **as pairs** (backup is fundamental to the design; see README and security spec).
 
 ---
 
@@ -504,7 +506,7 @@ Both SKUs share a PCB; Pro populates the secure element, adds the tamper mesh, a
 | USB       | AP         | Hub + gadget + host   | USB3-class; host role drives external drive / Ethernet adapter |
 | SDIO      | AP         | eMMC                  | 4-bit or 8-bit                          |
 | SDIO      | AP         | MicroSD               | 4-bit                                   |
-| PCIe      | AP         | NVMe (optional)       | x1; only if the chosen AP provides PCIe |
+| SDIO/eMMC | AP         | eMMC / UFS (onboard)  | Higher capacity on Pro; same footprint  |
 
 ---
 
@@ -527,7 +529,7 @@ Both SKUs share a PCB; Pro populates the secure element, adds the tamper mesh, a
 | -------------------------------- | ---------------- |
 | Concept refinement + feasibility | \$5k - \$15k       |
 | Schematic + PCB layout           | \$15k - \$40k      |
-| Enclosure design + prototyping (stainless, thermal path) | \$10k - \$25k |
+| Enclosure design + prototyping (machined metal, thermal path) | \$10k - \$25k |
 | Firmware MVP (security MCU + AP)  | \$60k - \$200k+    |
 | **Total Phase 1 (indicative)**   | **highly team-dependent; obtain a quote** |
 
@@ -577,5 +579,6 @@ This is a **design goal, not a v1 deliverable.** Device-level FIPS 140-3 / Commo
 - RTC + timekeeping-supercap sizing vs. target unpowered-retention window
 - Tamper-threshold tuning to avoid false positives across the environmental envelope
 - IP rating target (IP52 vs IP67 cost/complexity trade-off)
-- Stainless-shell thermal path design for the AP
-- NVMe inclusion (Pro-only, AP-dependent)
+- Enclosure metal choice vs. thermal path for the AP (hardness/thermal/cost trade-off)
+- Final thickness within the mechanical envelope (~18 mm target)
+- Pro onboard-storage part (higher-capacity eMMC vs. UFS)

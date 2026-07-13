@@ -50,7 +50,7 @@ KeyMaster uses two processors with distinct responsibilities:
 │  │   (ISO7816, SPI)        │    │    │   (Local management)    │    │
 │  ├─────────────────────────┤    │    ├─────────────────────────┤    │
 │  │   State Machine         │    │    │   Storage Drivers       │    │
-│  │   (Profiles, Policies)  │    │    │   (eMMC, SD, NVMe)      │    │
+│  │   (Profiles, Policies)  │    │    │   (eMMC/UFS, SD, ext)   │    │
 │  └─────────────────────────┘    │    └─────────────────────────┘    │
 ├─────────────────────────────────┴───────────────────────────────────┤
 │                        Inter-Processor Communication                │
@@ -737,7 +737,7 @@ KeyMaster keeps wall-clock time so TOTP works anywhere and time-based features a
 
 ```
 Time cascade (authoritative → best-effort → last resort):
-  1. Supercap-backed RTC ..... primary source; holds time for weeks-to-months unpowered
+  1. Supercap-backed RTC ..... primary source; holds time for weeks unpowered
   2. NTP ..................... when the AP is networked (standalone adapter / helper)
   3. km helper / extension ... pushes host time on enumeration
   4. Host-clock scavenge ..... best-effort over a bare point-to-point link:

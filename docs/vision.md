@@ -134,7 +134,7 @@ The two units sync continuously when they can reach each other. If one is lost o
 
 ### Hardware
 
-A compact device (~2" × 3" × 0.6") with:
+A compact device (~2" × 3" × ~0.7") with:
 - **12-key capacitive keypad**: Recessed for tactile navigation, silent, works by touch alone. You can unlock it under a table, invisible to observers.
 - **E-paper display**: Readable in any light, no glow to attract attention, persists when unplugged.
 - **Two USB-C ports**: Either can connect to a host; the other for flash drives or backup units.

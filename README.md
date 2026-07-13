@@ -69,7 +69,7 @@ A compact USB-C device (~2" × 3") that draws power from whatever it's plugged i
 
 - 12-key recessed capacitive keypad (silent by default, pattern-based unlock, usable by touch under a table; optional light haptic confirmation you can silence)
 - E-paper display (readable in sunlight, no light leakage, persists when unplugged)
-- Stainless-steel shell, built to take abuse and resist intrusion
+- Durable metal shell, built to take abuse and resist intrusion
 - Two fully dual-role USB-C ports (either can be upstream or downstream; power passes through to your phone)
 - MicroSD slot for bulk storage
 
@@ -82,9 +82,8 @@ A compact USB-C device (~2" × 3") that draws power from whatever it's plugged i
 **Storage Options:**
 
 - Secure vault: 128-512 MB (enough for 10,000+ entries with attachments)
-- OS and tools: 8-16 GB eMMC
-- User storage: MicroSD up to 1 TB
-- Pro model: optional M.2 NVMe bay up to 1 TB
+- OS and tools: 8-16 GB eMMC (higher-capacity eMMC/UFS on the Pro model)
+- User storage: MicroSD up to 1 TB, plus external drives via USB-C for more
 
 ---
 
@@ -140,8 +139,8 @@ This pattern also reinforces a healthy mental model: **KeyMasters are fungible p
 
 - SPI-NOR: Bootloader and recovery
 - SPI-NAND: Encrypted vault store
-- eMMC: Operating system and tools
-- MicroSD (and optional Pro NVMe bay): User bulk storage
+- eMMC/UFS: Operating system, tools, and Pro extra capacity
+- MicroSD and external USB-C drives: User bulk storage
 
 **USB Composite Device:**
 
@@ -218,7 +217,7 @@ We de-risk deliberately:
 
 - **Inherited assurance.** KeyMaster's high-security certifications come from a pre-certified secure element, so the multi-million-dollar chip evaluation is the silicon vendor's cost, not ours.
 - **Ship on self-certification.** v1 targets FCC and CE self-declaration (no radio, so no costly RF path) plus FIDO2, with FIPS 140-3 and Common Criteria as funded fast-follows.
-- **Honest about the risks.** The dominant ones are certification timelines, the depth of two full firmware stacks, and the economics of a machined-stainless device sold as a pair. These are laid out in the [engineering brief](docs/engagement.md) and the [hardware spec](docs/specs/hardware.md).
+- **Honest about the risks.** The dominant ones are certification timelines, the depth of two full firmware stacks, and the economics of a machined-metal device sold as a pair. These are laid out in the [engineering brief](docs/engagement.md) and the [hardware spec](docs/specs/hardware.md).
 
 Hardware budgets are famously optimistic; these figures already carry contingency, and the specifications behind them are detailed enough for an engineering firm to quote against rather than guess.
 
