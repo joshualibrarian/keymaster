@@ -101,7 +101,7 @@ This pattern also reinforces a healthy mental model: **KeyMasters are fungible p
 
 ## What It Will Take to Build
 
-KeyMaster is at the design stage, and turning it into a shipping product is a hardware program, not a weekend project. We would rather state the real scale than understate it.
+KeyMaster is at the design stage. Turning it into a shipping product is a serious, multi-year hardware effort, and we would rather state its real scale than understate it.
 
 A realistic path to a shipping v1 is roughly **\$4–7M over 24–36 months**: a dual-processor secure device carried through prototype, design-for-manufacture, baseline certification (FCC, CE, FIDO2), and a first production run. A lean effort that blends offshore talent and defers heavy certification could reach a pilot for around \$2–3.5M. Pursuing government-grade device certification (FIPS 140-3, Common Criteria) for v1 pushes the ceiling toward \$8–12M and adds one to two years of certification queue, which is why we treat it as a later milestone rather than a v1 gate.
 
