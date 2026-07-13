@@ -438,7 +438,7 @@ The two SKUs differ mainly in the **tier of physical secret protection**: a "goo
 | eMMC                 | 8 GB                                             | 16 GB                                     |
 | MicroSD              | Yes                                             | Yes                                       |
 | NVMe M.2 2230        | No                                              | Optional bay (AP-dependent)               |
-| Target price         | $80-120 *(indicative; see §14)*                 | $150-200 *(indicative; see §14)*          |
+| Target price         | \$80-120 *(indicative; see §14)*                 | \$150-200 *(indicative; see §14)*          |
 
 Both SKUs share a PCB; Pro populates the secure element, adds the tamper mesh, and increases flash. Both are sold, and strongly recommended, **as pairs** (backup is fundamental to the design; see README and security spec).
 
@@ -511,10 +511,10 @@ Both SKUs share a PCB; Pro populates the secure element, adds the tamper mesh, a
 
 | Component                        | Indicative range |
 | -------------------------------- | ---------------- |
-| Concept refinement + feasibility | $5k - $15k       |
-| Schematic + PCB layout           | $15k - $40k      |
-| Enclosure design + prototyping (stainless, thermal path) | $10k - $25k |
-| Firmware MVP (security MCU + AP)  | $60k - $200k+    |
+| Concept refinement + feasibility | \$5k - \$15k       |
+| Schematic + PCB layout           | \$15k - \$40k      |
+| Enclosure design + prototyping (stainless, thermal path) | \$10k - \$25k |
+| Firmware MVP (security MCU + AP)  | \$60k - \$200k+    |
 | **Total Phase 1 (indicative)**   | **highly team-dependent; obtain a quote** |
 
 *Estimates vary significantly with team experience, certification scope, and security depth.*

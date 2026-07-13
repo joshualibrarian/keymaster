@@ -28,7 +28,7 @@ The result is everyday friction: you can't safely log in on a coffee-shop comput
 
 ## The Opportunity
 
-People have already proven they will pay for hardware that keeps their secrets off the network. Crypto hardware wallets are a $350–450M market growing toward billions. Privacy phones routinely raise seven figures on crowdfunding (BraX3 raised about $1.9M, the Librem 5 about $2.1M). Flipper Zero turned a $60K goal into $4.8M and has sold over a million units. The broader privacy-technology market is projected to grow from about $3.2B in 2024 to roughly $28B by 2034.
+People have already proven they will pay for hardware that keeps their secrets off the network. Crypto hardware wallets are a \$350–450M market growing toward billions. Privacy phones routinely raise seven figures on crowdfunding (BraX3 raised about \$1.9M, the Librem 5 about \$2.1M). Flipper Zero turned a \$60K goal into \$4.8M and has sold over a million units. The broader privacy-technology market is projected to grow from about \$3.2B in 2024 to roughly \$28B by 2034.
 
 Every one of those products solves a single slice: a wallet holds seed phrases, a security key does FIDO2, a privacy phone hardens the mobile stack. The result is that security-conscious people carry several single-purpose devices and juggle fragmented workflows. What no one has shipped is the integration, one device under the user's physical control that unifies credentials, keys, OTP, wallet seeds, passkeys, and context-aware host behavior.
 
@@ -225,9 +225,9 @@ See [docs/specs/security.md](docs/specs/security.md) for the full cryptographic 
 
 KeyMaster is at the design stage, and turning it into a shipping product is a hardware program, not a weekend project. We would rather state the real scale than understate it.
 
-A realistic path to a shipping v1 is roughly **$4–7M over 24–36 months**: a dual-processor secure device carried through prototype, design-for-manufacture, baseline certification (FCC, CE, FIDO2), and a first production run. A lean effort that blends offshore talent and defers heavy certification could reach a pilot for around $2–3.5M. Pursuing government-grade device certification (FIPS 140-3, Common Criteria) for v1 pushes the ceiling toward $8–12M and adds one to two years of certification queue, which is why we treat it as a later milestone rather than a v1 gate.
+A realistic path to a shipping v1 is roughly **\$4–7M over 24–36 months**: a dual-processor secure device carried through prototype, design-for-manufacture, baseline certification (FCC, CE, FIDO2), and a first production run. A lean effort that blends offshore talent and defers heavy certification could reach a pilot for around \$2–3.5M. Pursuing government-grade device certification (FIPS 140-3, Common Criteria) for v1 pushes the ceiling toward \$8–12M and adds one to two years of certification queue, which is why we treat it as a later milestone rather than a v1 gate.
 
-**The near-term ask:** a seed raise toward the **$4–6M** range funds the path to a self-certified v1 pilot. The fully certified, at-scale product realistically spans a seed round plus a Series A.
+**The near-term ask:** a seed raise toward the **\$4–6M** range funds the path to a self-certified v1 pilot. The fully certified, at-scale product realistically spans a seed round plus a Series A.
 
 We de-risk deliberately:
 
