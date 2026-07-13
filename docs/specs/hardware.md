@@ -368,13 +368,27 @@ When acting as USB device to host:
 | Keys      | 12 (3×4 grid)                           |
 | Sensing   | Capacitive, self-capacitance preferred   |
 | Actuation | Finger touch only (no mechanical switch) |
-| Feedback  | Optional haptic (LRA) or none (silent)   |
+| Feedback  | Optional haptic confirmation, user-configurable including fully off (see below) |
 
 **Implementation Options:**
 
 1. **MCU GPIO sensing**: STM32 touch-sensing controller (TSC)
 2. **Dedicated IC**: Microchip MTCH6102, Azoteq IQS525
 3. **Hybrid**: Touch IC with MCU interrupt
+
+### Haptic Feedback (optional)
+
+A capacitive keypad gives no tactile confirmation on its own, which makes dropped or doubled key entries easy, especially during eyes-free unlock (in a pocket or under a table, where the user is not watching the display). A light haptic confirmation on each *registered* touch addresses this and directly supports the invisible-unlock use case.
+
+| Parameter | Specification |
+| --------- | ------------- |
+| Actuator  | Single LRA (linear resonant actuator) under the keypad; one actuator serves all keys |
+| Driver    | Dedicated haptic driver IC (e.g. TI DRV2605L class), MCU-controlled |
+| Domain    | Low-power domain; a click is a few-millisecond burst, so average power impact is negligible |
+| Waveform  | A single **uniform** click, identical for every key, so the feedback reveals no information about *which* key was touched |
+| Control   | User-configurable intensity, including fully off; plus a user-invokable silent mode that disables it before unlock for maximum-stealth situations (the exact control is an implementation/UX detail) |
+
+**Security note.** Haptic feedback is opt-in and introduces a small acoustic and vibration signature. With a uniform waveform it does not leak key *values*, but it does make keypress *count and timing* observable to someone who can hear or feel the device (most relevant when it rests on a hard surface; in-hand, the palm largely damps it). This is why it must be silenceable. See the security spec's side-channel notes.
 
 ### Physical Design
 

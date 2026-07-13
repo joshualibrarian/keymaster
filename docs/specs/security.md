@@ -476,9 +476,23 @@ The device supports PINs of arbitrary length within hardware limits; users pick 
 ```
 Keypad Properties:
   - Recessed design: not visible from side angles
-  - Silent capacitive touch: no audible feedback
+  - Silent by default: capacitive touch with no mechanical or audible feedback
+  - Optional haptic confirmation (see below), user-silenceable for stealth
   - No key labels visible when in use
   - Purely physical input: no remote/programmatic entry path
+
+Haptic Feedback Trade-off:
+  - An optional light haptic click confirms each registered key press, which aids
+    eyes-free entry (in a pocket, under a table). It is opt-in and configurable,
+    including a user-invokable silent mode entered BEFORE unlock.
+  - Note: the device cannot know a given unlock is the duress profile until after
+    the PIN is entered, so haptic silencing is a deliberate user action (a
+    configurable control), not something the device can infer per profile.
+  - Side-channel: with a uniform waveform per key, haptic feedback leaks no key
+    value, but its acoustic/vibration signature makes keypress count and timing
+    observable to a nearby party (mostly when the device rests on a hard surface).
+    For maximum-stealth or coercion contexts, silence it. See Side-Channel
+    Mitigations.
 
 PIN Memorization Styles:
   Users can frame their PIN mentally in whichever way works for them:
@@ -749,6 +763,7 @@ Supercap Sizing:
 | **Power analysis** | Randomized operation order, dummy operations |
 | **EM emanation** | Shielded enclosure, randomized execution |
 | **Cache timing** | No data-dependent memory access patterns |
+| **Haptic observability** | Uniform per-key waveform (no key-value leak); user-silenceable so keypress count/timing isn't exposed in stealth contexts |
 
 ### Software Mitigations
 

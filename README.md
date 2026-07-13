@@ -67,7 +67,7 @@ A compact USB-C device (~2" × 3") that draws power from whatever it's plugged i
 
 **Physical Design:**
 
-- 12-key recessed capacitive keypad (silent, pattern-based unlock, usable by touch under a table)
+- 12-key recessed capacitive keypad (silent by default, pattern-based unlock, usable by touch under a table; optional light haptic confirmation you can silence)
 - E-paper display (readable in sunlight, no light leakage, persists when unplugged)
 - Stainless-steel shell, built to take abuse and resist intrusion
 - Two fully dual-role USB-C ports (either can be upstream or downstream; power passes through to your phone)

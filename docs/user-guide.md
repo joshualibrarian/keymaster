@@ -85,6 +85,8 @@ With the browser extension installed, visit a login page and click "Save to KeyM
 
 **Pattern unlock:** Instead of a numeric PIN, you can swipe a pattern across the 12-key pad—similar to Android pattern unlock but on physical keys. The recessed design means nobody can see your pattern from the side.
 
+**Haptic confirmation:** KeyMaster can give a light tap each time a key press registers, which makes entering your PIN by feel, in a pocket or under a table, far more reliable when you can't watch the display. You can adjust how strong it is or turn it off completely. Because a tap makes a faint sound and vibration, there is also a silent mode you can switch on before unlocking for situations where you want no feedback at all; the device can't tell a duress unlock from a normal one until after you've entered it, so silencing is something you choose, not something it guesses.
+
 ### Auto-Typing Credentials
 
 When you need to log into a website on an untrusted computer (like a library kiosk or borrowed laptop):
