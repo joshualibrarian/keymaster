@@ -82,7 +82,7 @@ A compact USB-C device (~2" × 3") that draws power from whatever it's plugged i
 **Storage Options:**
 
 - Secure vault: 128-512 MB (enough for 10,000+ entries with attachments)
-- OS and tools: 8-16 GB eMMC (higher-capacity eMMC/UFS on the Pro model)
+- OS and tools: 8-16 GB, modern UFS flash preferred (higher-capacity on the Pro model)
 - User storage: MicroSD up to 1 TB, plus external drives via USB-C for more
 
 ---
@@ -139,7 +139,7 @@ This pattern also reinforces a healthy mental model: **KeyMasters are fungible p
 
 - SPI-NOR: Bootloader and recovery
 - SPI-NAND: Encrypted vault store
-- eMMC/UFS: Operating system, tools, and Pro extra capacity
+- UFS (preferred) or eMMC: Operating system, tools, and Pro extra capacity
 - MicroSD and external USB-C drives: User bulk storage
 
 **USB Composite Device:**

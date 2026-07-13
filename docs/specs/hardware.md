@@ -94,7 +94,7 @@ The internal cavity holds a keypad electrode layer, the e-paper panel, and a log
                     │       │        │  │ Storage          │  │   │
    MicroSD ─────────┤───────┼───────►│  │ - eMMC (OS)      │  │   │
                     │       │        │  │ - MicroSD        │  │   │
-                    │       │        │  │ - UFS (Pro opt.) │  │   │
+                    │       │        │  │ - UFS or eMMC    │  │   │
                     │       │        │  └──────────────────┘  │   │
                     │       │        └────────────────────────┘   │
                     │       │                                     │
@@ -233,9 +233,11 @@ The AP runs Linux for the composite USB gadget, the vault-presentation daemon, s
 ### OS Storage
 
 
-| Component | Size    | Purpose                        |
-| --------- | ------- | ------------------------------ |
-| eMMC      | 8-16 GB | Linux rootfs, tools, RO images |
+| Component   | Size    | Purpose                        |
+| ----------- | ------- | ------------------------------ |
+| UFS or eMMC | 8-16 GB+ | Linux rootfs, tools, RO images, and onboard user capacity |
+
+> **Storage direction: lean toward UFS.** We would prefer UFS for modern, SSD-class onboard speed (full-duplex, command-queued, roughly 2,000+ MB/s vs. eMMC's ~400) in the same solder-down footprint. eMMC is an acceptable fallback where the chosen application processor lacks a UFS controller, or where cost and availability favor it. Treat this as an engineering decision that leans UFS, not a hard requirement.
 
 **Partitioning:**
 
@@ -249,7 +251,7 @@ The AP runs Linux for the composite USB gadget, the vault-presentation daemon, s
 | ------------- | ---------- | ------------------------------------------------ |
 | MicroSD slot  | Up to 1 TB | User data, encrypted partitions                  |
 
-> Onboard capacity is set by the eMMC/UFS part (higher-capacity on the Pro model, same footprint). For larger or higher-speed storage, users add a MicroSD card or an external drive on the USB-C port through the encrypting-bridge path (see §5, High-Power Domain).
+> Onboard capacity is set by the UFS (preferred) or eMMC part, higher-capacity on the Pro model in the same footprint. For larger or higher-speed storage, users add a MicroSD card or an external drive on the USB-C port through the encrypting-bridge path (see §5, High-Power Domain).
 
 ---
 
@@ -452,7 +454,7 @@ The two SKUs differ mainly in the **tier of physical secret protection**: a "goo
 | Tamper mesh          | Case-open detect                                | Active mesh + case-open                   |
 | RTC + timekeeping supercap | Yes                                       | Yes                                       |
 | SPI-NAND (vault)     | 128 MB                                           | 512 MB                                    |
-| Onboard storage      | 8-16 GB eMMC                                     | Higher-capacity eMMC/UFS (up to 256 GB+, same footprint) |
+| Onboard storage      | 8-16 GB (UFS preferred, eMMC fallback)          | Higher-capacity UFS/eMMC (up to 256 GB+, same footprint) |
 | MicroSD              | Yes                                             | Yes                                       |
 | Target price         | \$80-120 *(indicative; see §14)*                 | \$150-200 *(indicative; see §14)*          |
 
@@ -581,4 +583,4 @@ This is a **design goal, not a v1 deliverable.** Device-level FIPS 140-3 / Commo
 - IP rating target (IP52 vs IP67 cost/complexity trade-off)
 - Enclosure metal choice vs. thermal path for the AP (hardness/thermal/cost trade-off)
 - Final thickness within the mechanical envelope (~18 mm target)
-- Pro onboard-storage part (higher-capacity eMMC vs. UFS)
+- Onboard storage: confirm UFS (preferred) vs. eMMC fallback against the chosen AP's controller support and cost
