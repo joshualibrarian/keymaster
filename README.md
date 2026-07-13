@@ -52,27 +52,12 @@ The vast majority of hardware security tokens do one thing. KeyMaster does the t
 
 ## The Killer Feature: Invisible Unlock
 
-Every week, you enter your PIN at grocery store terminals with a flimsy plastic guard—while a hundred cameras record your keystrokes. KeyMaster's recessed capacitive keypad changes this: you can unlock it by touch alone, invisibly, under a table or in your pocket.
+Every week you enter a PIN at a checkout terminal behind a flimsy plastic guard, while cameras record your keystrokes. KeyMaster is built so nobody has to see you unlock it at all. Two design choices make that possible:
 
-**Why this matters:**
+- **A recessed capacitive keypad.** You unlock by touch alone, silently, with no visible keystrokes and no audible feedback, under a table or inside a pocket.
+- **Female USB-C ports, not a male plug.** Most tokens (the OnlyKey, for example) plug straight into the host, so the device sits at the port in plain view unless you fumble with an extension cable. KeyMaster connects by cable, so it stays in your hand or pocket while you enter your PIN, wherever is discreet.
 
-- Nobody watching can see your pattern
-- No camera can record your keystrokes
-- No one even knows you're unlocking anything
-- Silent capacitive touch—no audible feedback to give you away
-
-**Profiles add another layer:**
-
-- Multiple profiles, each with its own unlock pattern
-- Each profile reveals different groups of entries
-- A **duress profile** can show harmless dummy data
-- The encrypted blobs are indistinguishable—there's no way to prove other profiles exist
-
-**Real scenarios:**
-
-- **Border crossing:** Unlock your "travel" profile. Officials see airline and hotel logins. Your banking, crypto, and work credentials don't exist as far as they can tell.
-- **Coerced unlock:** Enter your duress pattern. The device unlocks to a decoy vault. Your real data remains hidden.
-- **Public spaces:** Unlock under the table at a coffee shop. Nobody sees. Nobody knows.
+Profiles add a second layer: each unlock pattern reveals a different set of entries, a **duress pattern** opens a harmless decoy vault, and because the encrypted blobs are indistinguishable, there is no way to prove other profiles exist. At a border crossing you unlock a travel profile, and your banking, crypto, and work credentials simply don't exist as far as anyone can tell.
 
 ---
 
