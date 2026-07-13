@@ -15,6 +15,14 @@ It is not just a password store. It is a secure interaction point for credential
 
 Our digital lives are a mess of passwords, keys, and secrets scattered across devices and services. The current solutions are fundamentally broken:
 
+**Browser and platform password managers** (Google, Apple, and the browsers' built-in vaults) are what most people actually use, because they're free and already there. That convenience hides real limits:
+
+- Your passwords live inside your Google or Apple account, so they are only as safe as that account, and that account is one of the most-attacked targets on the internet
+- They are locked to an ecosystem: Google's work well in Chrome and on Android, Apple's in Safari and on Apple devices, and everything gets awkward the moment you cross between them
+- They handle passwords and passkeys, but not SSH or GPG keys, wallet seeds, TOTP secrets, or smart-card logins
+- On a borrowed or locked-down machine, using them means signing your entire account into a computer you don't trust, if it's allowed at all
+- Lose access to the platform account and you can lose everything at once
+
 **Cloud password managers** (1Password, LastPass, Bitwarden, etc.) are convenient but have critical gaps:
 
 - Your vault lives on someone else's servers

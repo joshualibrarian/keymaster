@@ -28,6 +28,13 @@ None of these systems talk to each other. None of them travel well. None of them
 
 ### Current Solutions Are Broken
 
+**Browser and platform managers** (Google, Apple, built-in browser vaults) are what most people actually use:
+- Free and already there, but your passwords live inside your Google or Apple account, which is only as safe as that account and is a prime target for attackers
+- Locked to an ecosystem: great inside Chrome/Android or Safari/Apple, awkward the moment you cross between them
+- Passwords and passkeys only, not SSH/GPG keys, wallet seeds, TOTP secrets, or smart-card logins
+- On a borrowed or locked-down machine, using them means signing your whole account into a computer you don't trust
+- Lose the platform account and you can lose everything at once
+
 **Cloud password managers** (1Password, LastPass, Bitwarden, etc.):
 - Convenient, but your vault lives on someone else's servers
 - You must trust their security, their employees, their jurisdiction
