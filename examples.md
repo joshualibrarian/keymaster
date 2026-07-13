@@ -16,7 +16,7 @@ For the shared family Netflix, she adds her spouse as a recipient on that one en
 
 **Jennifer** just closed on her first house. In two weeks she goes from fifteen online accounts to forty: mortgage portal, homeowner's insurance, property tax, utilities, HOA, lawn service, garbage collection, home warranty, alarm monitoring.
 
-She and her partner Derek each get a KeyMaster pair. Her primary lives on her keychain; her backup lives in the fireproof safe in the basement with the house title and their passports, and she brings it up to sync every few weeks (the safe has an interior outlet, so if she wants it always-current she can simply leave it plugged in). They create a shared "Household" group for joint accounts and keep personal accounts separate. Multi-recipient encryption means both of them can unlock the shared entries without seeing the other's private ones.
+She and her partner Derek each get a KeyMaster pair. Her primary lives on her keychain; her backup lives in the fireproof safe in the basement with the house title and their passports, and she brings it up to sync every few weeks (the safe has an interior outlet, so if she wants it always-current she can leave it plugged in). They create a shared "Household" group for joint accounts and keep personal accounts separate. Multi-recipient encryption means both of them can unlock the shared entries without seeing the other's private ones.
 
 When the cable company's tech support asks her to confirm account credentials during a service call, she plugs in KeyMaster under the coffee table and auto-types the account number and PIN. The tech doesn't see her typing anything; she doesn't need to read it off a sticky note.
 
@@ -26,7 +26,7 @@ When the cable company's tech support asks her to confirm account credentials du
 
 **Jamal** is starting grad school. His accounts include the university portal, financial aid, campus housing, library, several journal subscriptions, GitHub for his research code, an SSH key for the lab server, and shared documents with his advisor. Previously he was reusing three or four passwords and occasionally getting locked out after breaches.
 
-He buys a KeyMaster pair, less than the annual cost of a cloud password manager, and the data never leaves his own hardware. His primary lives on his keychain next to his dorm key. His backup stays at his parents' house, catching up whenever he's home for break and the two units are on the same network.
+He buys a KeyMaster pair for less than the annual cost of a cloud password manager, and the data never leaves his own hardware. His primary lives on his keychain next to his dorm key. His backup stays at his parents' house, catching up whenever he's home for break and the two units are on the same network.
 
 On the lab's shared compute server, he plugs in KeyMaster, unlocks it under the desk, and it auto-types his SSH passphrase or signs via CCID. For GitHub he uses a passkey stored on the device: phishing-resistant, and because it lives in his vault rather than being trapped on a single phone, it's backed up on his second unit like everything else. His advisor can't see what credentials he used; the next student to use the machine sees nothing of his session.
 
@@ -41,7 +41,7 @@ When his phone gets stolen at a concert, his accounts are unaffected, since his 
 **At a co-working space in Bangkok:**
 Sarah plugs her KeyMaster into a shared computer. Because the host is unknown, the device defaults to Minimal Mode: no storage, no vault, just smart-card and keyboard functions. The e-paper display shows "Unknown Host — Minimal Mode" and prompts for her PIN.
 
-She enters her travel PIN, which unlocks only her "travel" profile containing essential work passwords and a few personal accounts. When she visits her banking website, she presses the button on KeyMaster to auto-type her credentials. The device types her username, tabs to the password field, enters her password, and presses enter—all without the host computer ever seeing her actual credentials.
+She enters her travel PIN, which unlocks only her "travel" profile containing essential work passwords and a few personal accounts. When she visits her banking website, she presses the button on KeyMaster to auto-type her credentials. The device types her username, tabs to the password field, enters her password, and presses enter, all without the host computer ever seeing her actual credentials.
 
 **At her Airbnb with her laptop:**
 On her trusted laptop, KeyMaster switches to Composite Mode. She can access her full vault through the device's local web interface, manage all her profiles, and sync her latest password changes to her backup unit.
@@ -97,7 +97,7 @@ Alex uses the device's key-generation feature to create fresh SSH keys for each 
 **Maria** crosses international borders regularly and needs to protect sensitive data from inspection.
 
 **At airport security:**
-Maria enables "Travel Mode" before her trip. This locks KeyMaster into Minimal Mode and requires her travel PIN. If authorities inspect her device, they can unlock only the travel profile, basic travel-related passwords, with no indication that other data exists. The encrypted vault is indistinguishable from random data, and the device stores no count of how many profiles it holds.
+Maria enables "Travel Mode" before her trip. This locks KeyMaster into Minimal Mode and requires her travel PIN. If authorities inspect her device, they can unlock only the travel profile, which holds basic travel-related passwords, with no indication that other data exists. The encrypted vault is indistinguishable from random data, and the device stores no count of how many profiles it holds.
 
 **At her hotel:**
 Using her travel PIN, Maria can access essential accounts like email and work systems. Her banking and personal accounts remain hidden in other profiles that her travel PIN cannot unlock.
@@ -145,7 +145,7 @@ Beyond the paired backup unit, Jordan keeps additional KeyMasters in separate ph
 Dr. Kim plugs KeyMaster into any workstation on the ward. The hospital's managed machines run the KeyMaster helper, so the device offers her clinical profile immediately; on an unmanaged machine she selects it herself on the keypad. Either way she's into patient records and clinical systems without waiting for IT to provision anything.
 
 **At a disaster site:**
-Using a ruggedized tablet with limited connectivity, Dr. Kim's KeyMaster provides offline access to emergency protocols and contact information stored in the encrypted vault. The device's batteryless design means it works as long as the tablet can power a USB port — no charging, nothing to go flat.
+Using a ruggedized tablet with limited connectivity, Dr. Kim's KeyMaster provides offline access to emergency protocols and contact information stored in the encrypted vault. The device's batteryless design means it works as long as the tablet can power a USB port, with no charging and nothing to go flat.
 
 **Sharing access with relief teams:**
 Dr. Kim can quickly add temporary team members as recipients for shared emergency credentials, allowing coordinated response without compromising long-term security.
@@ -193,7 +193,7 @@ Sam stores encrypted messaging app credentials and GPG keys for secure source co
 When reporting from areas with government surveillance, Sam uses a duress PIN that unlocks only a "cover" profile containing innocuous credentials. Because the vault stores no evidence of how many profiles exist, there is no way to prove the source-protection tools are even there.
 
 **Secure file storage:**
-Interview recordings and sensitive documents are encrypted in KeyMaster's vault. The most sensitive material sits in an elevated group that requires a second PIN — entered on the device's keypad — even after the profile itself is unlocked, so a single coerced unlock doesn't expose everything.
+Interview recordings and sensitive documents are encrypted in KeyMaster's vault. The most sensitive material sits in an elevated group that requires a second PIN, entered on the device's keypad, even after the profile itself is unlocked, so a single coerced unlock doesn't expose everything.
 
 **Security benefit:** Source protection through credential isolation and plausible deniability features.
 
@@ -226,4 +226,4 @@ Robert's KeyMaster holds emergency contact information and medical details in a 
 
 **No Single Point of Failure:** The combination of on-device storage, a synced backup unit, and optional social recovery ensures users never lose access to their digital lives, and lets the device defend itself aggressively, because the data always lives in more than one place.
 
-These examples demonstrate how KeyMaster's design philosophy—security without sacrificing usability—applies across diverse user needs and threat models.
+These examples demonstrate how KeyMaster's design philosophy (security without sacrificing usability) applies across diverse user needs and threat models.

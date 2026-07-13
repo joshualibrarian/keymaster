@@ -337,7 +337,7 @@ The vault is presented to *trusted* hosts as a filesystem, but **not** by export
 - **Host-side FUSE (recommended):** a small host helper mounts the vault via FUSE, talking to the device over the USB-Ethernet control API. The device serves decrypted content on demand, per active profile and host policy; plaintext lives only in the host helper's memory, never on a host disk as a mounted volume. This is what `km mount ~/vault` does.
 - **Alternative:** the device serves the same tree over a local protocol (e.g. WebDAV) on the USB-Ethernet link.
 
-On *untrusted* hosts, no filesystem is presented at all, only CCID / HID / FIDO2 (Minimal Mode).
+On *untrusted* hosts, no filesystem is presented; only CCID, HID, and FIDO2 are exposed (Minimal Mode).
 
 ```
 Internal mount: /mnt/vault (device side)

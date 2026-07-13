@@ -41,7 +41,7 @@ KeyMaster is designed to be used as a pair: one primary device you carry, one ba
 
 6. **Store the backup somewhere safe.** A home safe, a trusted friend's house, a safe deposit box. Your backup stays current by syncing whenever it's powered and connected. See [Backup and Recovery](#backup-and-recovery) for the ways to keep it in sync, including leaving it plugged in at home so it updates on its own.
 
-**Why this matters:** Your KeyMaster holds your entire digital identity. If you lose it without a backup, you lose access to everything. The backup isn't an afterthought—it's half of the system.
+**Why this matters:** Your KeyMaster holds your entire digital identity. If you lose it without a backup, you lose access to everything. The backup isn't an afterthought; it's half of the system.
 
 **You're ready to use it.** The primary device shows "LOCKED" with a key icon. Enter your PIN to unlock.
 
@@ -83,7 +83,7 @@ With the browser extension installed, visit a login page and click "Save to KeyM
 3. Enter your PIN on the recessed keypad
 4. If correct, the display shows your profile name and "Unlocked"
 
-**Pattern unlock:** Instead of a numeric PIN, you can swipe a pattern across the 12-key pad—similar to Android pattern unlock but on physical keys. The recessed design means nobody can see your pattern from the side.
+**Pattern unlock:** Instead of a numeric PIN, you can swipe a pattern across the 12-key pad, similar to Android pattern unlock but on physical keys. The recessed design means nobody can see your pattern from the side.
 
 **Haptic confirmation:** KeyMaster can give a light tap each time a key press registers, which makes entering your PIN by feel, in a pocket or under a table, far more reliable when you can't watch the display. You can adjust how strong it is or turn it off completely. Because a tap makes a faint sound and vibration, there is also a silent mode you can switch on before unlocking for situations where you want no feedback at all; the device can't tell a duress unlock from a normal one until after you've entered it, so silencing is something you choose, not something it guesses.
 
@@ -99,7 +99,7 @@ When you need to log into a website on an untrusted computer (like a library kio
    - Username + Tab + Password + Enter
 4. The device types the credentials as a keyboard
 
-The computer never sees your password database—it just receives keystrokes. A keylogger would only capture this one credential, not your entire vault.
+The computer never sees your password database. It just receives keystrokes. A keylogger would only capture this one credential, not your entire vault.
 
 ### Copying TOTP Codes
 
@@ -143,7 +143,7 @@ To unmount:
 $ km unmount
 ```
 
-Or just unplug the device—it unmounts safely.
+Or just unplug the device; it unmounts safely.
 
 ---
 
@@ -209,7 +209,7 @@ You can have as many KeyMasters as you want, and they keep each other in sync wh
 A backup only syncs while it's **powered and connected**, since it has no battery and no wireless radio, so it isn't "always on" in a drawer. There are three easy ways to connect it, and you pick whichever fits:
 
 - **Plug the two devices together.** Connect your primary and backup with a USB-C cable and they sync directly. Simplest, no network involved.
-- **Leave the backup plugged into a home computer.** With the small KeyMaster helper app running on that computer, the backup stays reachable on your network and syncs in the background whenever your primary is connected, including over the internet, if you set that up, so a backup across the country stays current.
+- **Leave the backup plugged into a home computer.** With the small KeyMaster helper app running on that computer, the backup stays reachable on your network and syncs in the background whenever your primary is connected. If you set it up, this can even work over the internet, so a backup across the country stays current.
 - **Give the backup its own network connection.** With an inexpensive USB-C–to–Ethernet adapter (and power), a backup can sit on your network by itself, no computer required. This is the setup for a backup that lives in a safe: run power and a network cable in (or a single Power-over-Ethernet cable), and it quietly keeps itself current.
 
 However you connect it, an offline backup simply catches up the moment it's next plugged in. You never have to remember to "make a backup," because it's already made.
@@ -319,9 +319,9 @@ Your KeyMaster emulates an OpenPGP smart card via USB CCID:
 
 ### Passkeys (FIDO2)
 
-KeyMaster is a full passkey device—the same kind of "sign in without a password" credential that banks, Google, Microsoft, and a growing list of sites now support. To the website, it looks like any other security key.
+KeyMaster is a full passkey device, the same kind of "sign in without a password" credential that banks, Google, Microsoft, and a growing list of sites now support. To the website, it looks like any other security key.
 
-**What makes passkeys different from passwords:** a passkey isn't a secret you hand over. It's a private key that never leaves your KeyMaster. When you sign in, the website sends a challenge, your KeyMaster signs it on-device (you confirm with a touch), and only the signature goes back. Nothing reusable is ever transmitted, and your KeyMaster refuses to sign for a look-alike phishing site—so passkeys can't be phished or replayed.
+**What makes passkeys different from passwords:** a passkey isn't a secret you hand over. It's a private key that never leaves your KeyMaster. When you sign in, the website sends a challenge, your KeyMaster signs it on-device (you confirm with a touch), and only the signature goes back. Nothing reusable is ever transmitted, and your KeyMaster refuses to sign for a look-alike phishing site, so passkeys can't be phished or replayed.
 
 **Using a passkey:**
 
@@ -430,14 +430,14 @@ KeyMaster is designed to be self-contained, but a few accessories can make incor
 
 ### Smart Card Adapter (roadmap)
 
-A dedicated smart card adapter is planned for future release. This is essentially a standard smart card form factor with a USB-C port—you plug your KeyMaster into the adapter, and the adapter plugs into any smart card reader.
+A dedicated smart card adapter is planned for future release. This is essentially a standard smart card form factor with a USB-C port. You plug your KeyMaster into the adapter, and the adapter plugs into any smart card reader.
 
 **How it works:**
 
 1. Insert the adapter into a standard smart card reader (ISO 7816)
 2. Connect your KeyMaster to the adapter's USB-C port
 3. KeyMaster enters low-power mode, drawing power from the smart card reader
-4. The device fully emulates a smart card—indistinguishable from a traditional PIV/OpenPGP card
+4. The device fully emulates a smart card, indistinguishable from a traditional PIV/OpenPGP card
 
 **Why this matters:**
 
@@ -453,7 +453,7 @@ If you're using KeyMaster daily (unlocking your phone, authenticating at coffee 
 
 **Considerations for everyday carry:**
 
-- **Retractable cables:** A self-winding USB-C cable that clips to your keychain, belt loop, inside your coat or vest.  Pull to extend, release to retract. Look for cables rated for data (not charge-only) with a compact housing.
+- **Retractable cables:** A self-winding USB-C cable that clips to your keychain, belt loop, inside your coat or vest. Pull to extend, release to retract. Look for cables rated for data (not charge-only) with a compact housing.
 - **Lanyard mounts:** A short (6-8 inch) cable permanently attached to a lanyard or badge reel. KeyMaster stays in your pocket; pull it out, plug in, authenticate, let it retract.
 - **Jacket/bag integration:** A cable routed through an inner pocket with the connector accessible at the cuff or an external port. Your KeyMaster lives in the pocket; the cable is always ready.
 
@@ -489,7 +489,7 @@ We don't manufacture cables, but we're evaluating partnerships with accessory ma
 
 ### "Vault corrupted" warning
 
-1. Don't panic—this usually means minor index damage
+1. Don't panic; this usually means minor index damage
 2. Connect to a trusted computer
 3. Run `km repair` to rebuild the index
 4. If that fails, restore from backup

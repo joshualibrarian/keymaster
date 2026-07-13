@@ -167,7 +167,7 @@ When unlocked on a trusted host, KeyMaster presents a FUSE filesystem:
     desktop-123/.host.xml
 ```
 
-Groups are directories; entries are canonical in `.entries/`. The device handles all encryption—plaintext never touches the host disk, and the on-device store is opaque (see the security spec's "object-soup" format). Where a user wants to work in an existing password manager, KeyMaster can export to the standard KeePass `.kdbx` format — compatible with the whole KeePass family (KeePassXC on the desktop, KeePassDX / KeePassium and others on mobile). Which managers to integrate with is an open, not-yet-decided question; `.kdbx` is simply a widely-supported interchange target.
+Groups are directories; entries are canonical in `.entries/`. The device handles all encryption—plaintext never touches the host disk, and the on-device store is opaque (see the security spec's "object-soup" format). Where a user wants to work in an existing password manager, KeyMaster can export to the standard KeePass `.kdbx` format, compatible with the whole KeePass family (KeePassXC on the desktop, KeePassDX / KeePassium and others on mobile). Which managers to integrate with is an open question; `.kdbx` is a widely-supported interchange target.
 
 ### Backup & Sync
 

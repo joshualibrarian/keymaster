@@ -206,7 +206,7 @@ The device secret and attempt-counter live in tamper-resistant storage. Two tier
 
 ### Application Processor Requirements
 
-The AP runs Linux for the composite USB gadget, the vault-presentation daemon, sync, and **line-rate bulk encryption**. KeyMaster can act as an inline encrypting bridge for external media (plug a drive into the downstream port; KeyMaster encrypts/decrypts every byte in transit), and that data path runs on the AP's hardware crypto engine. That capability, not the small vault, is what sets the AP's performance floor.
+The AP runs Linux for the composite USB gadget, the vault-presentation daemon, sync, and **line-rate bulk encryption**. KeyMaster can act as an inline encrypting bridge for external media (plug a drive into the downstream port; KeyMaster encrypts/decrypts every byte in transit), and that data path runs on the AP's hardware crypto engine. That capability, not the small vault, sets the AP's performance floor.
 
 **AP class (not a specific part; see the note in §1):**
 
@@ -383,7 +383,7 @@ When acting as USB device to host:
 
 ### Haptic Feedback (optional)
 
-A capacitive keypad gives no tactile confirmation on its own, which makes dropped or doubled key entries easy, especially during eyes-free unlock (in a pocket or under a table, where the user is not watching the display). A light haptic confirmation on each *registered* touch addresses this and directly supports the invisible-unlock use case.
+A capacitive keypad gives no tactile confirmation on its own, which makes it easy to drop or double a key press, especially during eyes-free unlock (in a pocket or under a table, where the user is not watching the display). A light haptic confirmation on each *registered* touch addresses this and directly supports the invisible-unlock use case.
 
 | Parameter | Specification |
 | --------- | ------------- |

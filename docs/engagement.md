@@ -50,7 +50,7 @@ A proposal should include:
 
 1. **Architecture proposal** with clearly defined trust boundaries between the security domain, the application processor, and the host.
 2. **Electrical power-path design**, including the two-port dual-role and pass-through-power strategy (wall power in, device powered, phone charged through).
-3. **Card-emulation (low-power) mode power budget** and a measurement plan against a constrained-power smart-card reader (order of ~60 mA).
+3. **Card-emulation (low-power) mode power budget** and a measurement plan against a constrained-power smart-card reader (on the order of 60 mA).
 4. **Feasibility and risk register** with a milestone plan: what is routine, what is hard, what is uncertain, and how you propose to retire each risk.
 5. **Preliminary BOM and cost range** with supply-risk notes, alternates, and lead-time exposure (secure element, application processor, e-paper, USB-C PD controllers).
 6. **Validation plan** covering electrical bring-up, USB interoperability across host operating systems, mechanical, and environmental testing.
@@ -117,9 +117,9 @@ These decisions are yours to make and justify against the product goals:
 
 ## Engagement Shape and Budget
 
-We anticipate a phased engagement: feasibility and architecture, then prototype (schematic, PCB, enclosure, firmware MVP), then design-for-manufacture and validation. The hardware spec's development-deliverables section carries indicative, order-of-magnitude budget ranges for the prototype phase; these are planning placeholders to be replaced by your quote. A realistic secure, dual-processor device of this kind is a substantial firmware effort, and we would rather see an honest number than an optimistic one.
+We anticipate a phased engagement: feasibility and architecture, then prototype (schematic, PCB, enclosure, firmware MVP), then design-for-manufacture and validation. The hardware spec's development-deliverables section carries indicative, order-of-magnitude budget ranges for the prototype phase; these are planning placeholders to be replaced by your quote. A secure, dual-processor device of this kind is a substantial firmware effort, and we would rather see an honest number than an optimistic one.
 
-The broader capital picture (prototype through certification and a first production run) is summarized in the investor-facing materials in the README and vision documents.
+The broader capital picture (prototype through certification and a first production run) is summarized in the investor-facing README and vision documents.
 
 ---
 

@@ -30,7 +30,7 @@ The result is everyday friction: you can't safely log in on a coffee-shop comput
 
 People have already proven they will pay for hardware that keeps their secrets off the network. Crypto hardware wallets are a \$350–450M market growing toward billions. Privacy phones routinely raise seven figures on crowdfunding (BraX3 raised about \$1.9M, the Librem 5 about \$2.1M). Flipper Zero turned a \$60K goal into \$4.8M and has sold over a million units. The broader privacy-technology market is projected to grow from about \$3.2B in 2024 to roughly \$28B by 2034.
 
-Every one of those products solves a single slice: a wallet holds seed phrases, a security key does FIDO2, a privacy phone hardens the mobile stack. The result is that security-conscious people carry several single-purpose devices and juggle fragmented workflows. What no one has shipped is the integration, one device under the user's physical control that unifies credentials, keys, OTP, wallet seeds, passkeys, and context-aware host behavior.
+Every one of those products solves a single slice: a wallet holds seed phrases, a security key does FIDO2, a privacy phone hardens the mobile stack. The result is that security-conscious people carry several single-purpose devices and juggle fragmented workflows. What no one has shipped is the integration: one device under the user's physical control that unifies credentials, keys, OTP, wallet seeds, passkeys, and context-aware host behavior.
 
 That gap is what KeyMaster fills. See the [full market analysis](docs/vision.md#why-the-market-is-ready) for the sourced figures and the funding picture below for what building it takes.
 
@@ -55,7 +55,7 @@ The vast majority of hardware security tokens do one thing. KeyMaster does the t
 Every week you enter a PIN at a checkout terminal behind a flimsy plastic guard, while cameras record your keystrokes. KeyMaster is built so nobody has to see you unlock it at all. Two design choices make that possible:
 
 - **A recessed capacitive keypad.** You unlock by touch alone, silently, with no visible keystrokes and no audible feedback, under a table or inside a pocket.
-- **Female USB-C ports, not a male plug.** Most tokens (the OnlyKey, for example) plug straight into the host, so the device sits at the port in plain view unless you fumble with an extension cable. KeyMaster connects by cable, so it stays in your hand or pocket while you enter your PIN, wherever is discreet.
+- **Female USB-C ports, not a male plug.** Most tokens (the OnlyKey, for example) plug straight into the host, so the device sits at the port in plain view unless you fumble with an extension cable. KeyMaster connects by cable, so it stays in your hand or pocket while you enter your PIN.
 
 Profiles add a second layer: each unlock pattern reveals a different set of entries, a **duress pattern** opens a harmless decoy vault, and because the encrypted blobs are indistinguishable, there is no way to prove other profiles exist. At a border crossing you unlock a travel profile, and your banking, crypto, and work credentials simply don't exist as far as anyone can tell.
 
@@ -115,7 +115,7 @@ We de-risk deliberately:
 
 Hardware budgets tend to run over, so these figures carry contingency, and the specifications behind them are detailed enough for an engineering firm to quote against rather than guess.
 
-**What it might sell for.** Early unit economics are rough but worth stating. A small Linux computer plus a security core, an e-paper display, a keypad, and a machined-metal shell carries a premium bill of materials, roughly **\$100–180 per device** to build at low volume. At the usual direct-to-consumer hardware markup (about 2.5–3× cost), and given the sold-in-pairs model, that points to a launch price around a **\$500–900 pair** (~\$300–500 per device). At real production volume, component pricing, a cheaper enclosure process, and amortized tooling could bring that toward a **\$300–500 pair**. This is a premium price point, closer to a mid-range phone than a \$50 token; the market comps say the willingness-to-pay exists in this range (people fund \$800 privacy phones and buy \$280 hardware wallets), but it has to be earned by the integration story, one device that replaces a wallet, a security key, a password manager, and an authenticator, with a backup already in the box. Validating that willingness-to-pay early is a standing priority.
+**What it might sell for.** Early unit economics are rough but worth stating. A small Linux computer plus a security core, an e-paper display, a keypad, and a machined-metal shell carries a premium bill of materials, roughly **\$100–180 per device** to build at low volume. At the usual direct-to-consumer hardware markup (about 2.5–3× cost), and given the sold-in-pairs model, that points to a launch price around a **\$500–900 pair** (~\$300–500 per device). At real production volume, component pricing, a cheaper enclosure process, and amortized tooling could bring that toward a **\$300–500 pair**. This is a premium price point, closer to a mid-range phone than a \$50 token; the market comps say the willingness-to-pay exists in this range (people fund \$800 privacy phones and buy \$280 hardware wallets), but it has to be earned by the integration story: one device that replaces a wallet, a security key, a password manager, and an authenticator, with a backup already in the box. Validating that willingness-to-pay early is a standing priority.
 
 ---
 
@@ -150,7 +150,7 @@ Hardware budgets tend to run over, so these figures carry contingency, and the s
 
 ## Technical Architecture
 
-**Dual-Processor Design**:
+**Dual-Processor Design:**
 
 - **Security MCU (always on):** Handles keypad, display, the device secret, PIN entry, and core vault crypto. It runs **standalone**, even from a smart-card reader's power, with the application processor off. Small, auditable, and physically separate from the Linux brain.
 - **Application Processor (high-power, USB3-class, Linux):** FUSE vault presentation, sync daemon, composite USB gadget, and line-rate inline encryption of external media via its hardware crypto engine. Powers up only when needed.

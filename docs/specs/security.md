@@ -86,7 +86,7 @@ This document specifies the cryptographic design and threat model for KeyMaster.
 
 - Chip decapping and microprobing
 - Focused ion beam (FIB) circuit modification
-- Attacks requiring >$100k equipment or cleanroom access
+- Attacks requiring >\$100k equipment or cleanroom access
 - Social engineering (beyond duress scenarios)
 - Rubber-hose cryptanalysis (torture)
 
@@ -171,7 +171,7 @@ This document specifies the cryptographic design and threat model for KeyMaster.
 **PIN Key (PK):**
 - Derived from user PIN using Argon2id, with parameters tuned to the security MCU
 - Memory-hardness is a backstop, not the primary defense (see PIN Protection)
-- One device-wide salt; precomputation is prevented by the device-bound DRS, not by per-profile salts (per-profile salts would be countable and would leak the profile count — see Deniable Encryption)
+- One device-wide salt; precomputation is prevented by the device-bound DRS, not by per-profile salts (per-profile salts would be countable and would leak the profile count; see Deniable Encryption)
 
 **Key Encryption Key (KEK):**
 - Combines PK (user knowledge) with DRS (device possession)
@@ -303,17 +303,17 @@ DRS─│ HKDF │                 DRS─│ HKDF │                 DRS─│ 
 
 ### Deniable Encryption: the "object-soup" model
 
-Deniability is the headline security property: an attacker who seizes the device — even one who compels a duress unlock and then images the flash — **must not be able to prove that other profiles exist, or count them.** This requires that *nothing per-profile be stored in a countable form.* KeyMaster achieves this by storing everything as uniform, opaque objects (see the software spec's on-disk format):
+Deniability is the headline security property: an attacker who seizes the device, even one who compels a duress unlock and then images the flash, **must not be able to prove that other profiles exist, or count them.** This requires that *nothing per-profile be stored in a countable form.* KeyMaster achieves this by storing everything as uniform, opaque objects (see the software spec's on-disk format):
 
 **How it works:**
-- **Uniform objects, no plaintext type.** Every stored object — profile root, entry, group, attachment, passkey, or decoy — is a fixed-quantized encrypted blob. Nothing labels an object as a "profile." An object's kind is visible only after decryption, which requires the PIN.
+- **Uniform objects, no plaintext type.** Every stored object (profile root, entry, group, attachment, passkey, or decoy) is a fixed-quantized encrypted blob. Nothing labels an object as a "profile." An object's kind is visible only after decryption, which requires the PIN.
 - **One device-wide salt**, not a per-profile salt list. (Counting salts would count profiles.) Anti-precomputation comes from the un-extractable device secret.
 - **PIN-derived lookup.** A profile's root is *located and keyed by the PIN itself.* No PIN ⇒ no way to find or recognize it. A failed lookup is indistinguishable from "no more profiles." No profile count is stored anywhere.
 - **Anonymous recipient bags.** Shared entries carry a fixed-size, decoy-padded bag of wrapped keys with **no profile identifiers**, so you trial-decrypt to find yours (see Entry Encryption).
 - **Random-fill.** The store is random-initialized so occupancy always looks full.
 - Result: **effectively arbitrary profiles**, bounded only by storage, with the count written down nowhere.
 
-**The unavoidable law (stated honestly):** you can have {arbitrary count, perfectly hidden count, bounded storage} — pick two. Storage is physical, so "bounded" is non-negotiable; perfect hiding of an *unbounded* count is therefore impossible. This is the same wall TrueCrypt/VeraCrypt hidden volumes hit. KeyMaster spends the law well (arbitrary count, hidden count, at the cost of a residual *volume* signal), but does not pretend to escape it.
+**The unavoidable law (stated honestly):** you can have {arbitrary count, perfectly hidden count, bounded storage}. Pick two. Storage is physical, so "bounded" is non-negotiable; perfect hiding of an *unbounded* count is therefore impossible. This is the same wall TrueCrypt/VeraCrypt hidden volumes hit. KeyMaster spends the law well (arbitrary count, hidden count, at the cost of a residual *volume* signal), but does not pretend to escape it.
 
 **Residual limitations (real, not hidden):**
 - **Total volume, not count, is the residual tell.** An attacker cannot count profiles but can see how much data is present. A sparse duress profile on a visibly stuffed device is a soft, non-proof thread. Mitigations: random-fill (always looks full) and a plausibly-substantial duress profile. It shrinks toward nothing but never mathematically reaches zero.
@@ -353,7 +353,7 @@ Deniability is the headline security property: an attacker who seizes the device
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-There are **no plaintext profile identifiers** in the recipient bag, which would let a flash-image attacker enumerate profiles (see Deniable Encryption). The bag is a fixed size, padded with random decoys, so it leaks neither *which* nor even *how many* profiles can open an entry. A profile finds its slot by **trial-decryption** (the AEAD tag tells it which sealed blob is its own).
+There are **no plaintext profile identifiers** in the recipient bag; such identifiers would let a flash-image attacker enumerate profiles (see Deniable Encryption). The bag is a fixed size, padded with random decoys, so it leaks neither *which* nor even *how many* profiles can open an entry. A profile finds its slot by **trial-decryption** (the AEAD tag tells it which sealed blob is its own).
 
 ### Multi-Recipient & Cross-Device Sharing
 
@@ -459,7 +459,7 @@ The wipe threshold, backoff schedule, and reset policy are user-configurable dur
 
 Traditional brute-force analysis assumes an attacker can issue guesses rapidly, so PIN entropy must be large enough to resist billions or trillions of attempts. KeyMaster's design breaks both assumptions.
 
-**Input is physical, not programmable.** The capacitive keypad has no mechanical switches and no exposed contacts. Automating key entry would require a robotic apparatus that correctly triggers capacitive sensing across 12 keys — a significantly harder engineering problem than driving a USB interface or soldering to a debug pin. For practical purposes, a human attacker enters guesses by hand, at human speeds.
+**Input is physical, not programmable.** The capacitive keypad has no mechanical switches and no exposed contacts. Automating key entry would require a robotic apparatus that correctly triggers capacitive sensing across 12 keys, a significantly harder engineering problem than driving a USB interface or soldering to a debug pin. For practical purposes, a human attacker enters guesses by hand, at human speeds.
 
 **Attempts are hard-capped, and the device wipes.** After a user-configured number of failed attempts (default: 20) the device zeroizes its secret: an attacker gets at most N tries total, not N per second indefinitely, and there is nothing left to attack afterward. Recovery is from a paired backup or social-recovery shares (see the Key Recovery section).
 
@@ -551,7 +551,7 @@ Elevated Entries:
 
 **Duress interaction:**
 
-Because elevated unlock requires both PINs, an attacker who has extracted the profile PIN — via coercion, shoulder-surfing, or keystroke observation — still cannot access elevated content without the second PIN. The two PINs should be chosen to differ in length and style (a pattern for the profile, a numeric sequence for elevation, or vice versa) to make them cognitively distinct and reduce the risk of both being surrendered in the same duress event.
+Because elevated unlock requires both PINs, an attacker who has extracted the profile PIN, whether via coercion, shoulder-surfing, or keystroke observation, still cannot access elevated content without the second PIN. The two PINs should be chosen to differ in length and style (a pattern for the profile, a numeric sequence for elevation, or vice versa) to make them cognitively distinct and reduce the risk of both being surrendered in the same duress event.
 
 **Policy configurability:**
 
@@ -565,7 +565,7 @@ Tiered unlock is defense in depth, not a new root of trust. An attacker with ful
 
 ## Time Trust
 
-KeyMaster keeps time with a supercapacitor-backed RTC and refreshes it opportunistically from whatever a given environment offers (network NTP, the host helper, or — as best-effort — scavenging a host's clock over the point-to-point link; see software spec). Because some of those sources are **untrusted**, the security rule is strict:
+KeyMaster keeps time with a supercapacitor-backed RTC and refreshes it opportunistically from whatever a given environment offers (network NTP, the host helper, or, as a best-effort, scavenging a host's clock over the point-to-point link; see software spec). Because some of those sources are **untrusted**, the security rule is strict:
 
 - **Untrusted time may drive TOTP display only.** A wrong clock makes TOTP codes fail, which is an availability nuisance, not a compromise.
 - **Security timers must never run on host-supplied time.** The rate-limit backoff and wipe-threshold timing run on the device's internal/powered time only. Otherwise an attacker who sets the host clock forward could skip lockout delays. The hard *count* cap is inherently immune (it counts attempts, not time).
@@ -784,7 +784,7 @@ Supercap Sizing:
 |--------|------------|
 | **Replay** | Nonces in all encrypted messages, timestamps |
 | **MITM (sync)** | Mutual TLS, certificate pinning |
-| **Rollback** | Monotonic counter (SE) or authenticated index root (version in AAD alone is not sufficient — see Nonce Management) |
+| **Rollback** | Monotonic counter (SE) or authenticated index root (version in AAD alone is not sufficient; see Nonce Management) |
 | **Malformed input** | Strict parsing, length limits, fuzzing |
 
 ---
@@ -793,7 +793,7 @@ Supercap Sizing:
 
 ### The Recovery Problem
 
-KeyMaster is built around hardware custody of secrets: a forgotten PIN, a lost device without backup, or a damaged device without backup means the vault is gone. This is the correct trade-off for a device designed to resist compromise — anything that lets the legitimate user recover also creates a path for an attacker — but it means recovery paths need to be deliberate and explicit, not accidental.
+KeyMaster is built around hardware custody of secrets: a forgotten PIN, a lost device without backup, or a damaged device without backup means the vault is gone. This is the correct trade-off for a device designed to resist compromise (anything that lets the legitimate user recover also creates a path for an attacker), but it means recovery paths need to be deliberate and explicit, not accidental.
 
 KeyMaster supports three recovery tiers with different trust and threat-model properties. Users can mix and match.
 
@@ -823,14 +823,14 @@ Users may purchase additional single units as extra backups, held in a safe-depo
 
 ### Tier 3: Social Recovery via Shamir's Secret Sharing
 
-For catastrophic scenarios — all hardware lost, PIN forgotten on all devices, or a user who prefers recovery through trusted peers over personal hardware — KeyMaster supports **threshold secret sharing** of a recovery key, using Adi Shamir's 1979 construction (Shamir, 1979, *Communications of the ACM* 22(11), 612-613).
+For catastrophic scenarios (all hardware lost, PIN forgotten on all devices, or a user who prefers recovery through trusted peers over personal hardware), KeyMaster supports **threshold secret sharing** of a recovery key, using Adi Shamir's 1979 construction (Shamir, 1979, *Communications of the ACM* 22(11), 612-613).
 
 **Mechanism:**
 
 1. During setup, the user generates a recovery key and splits it into N shares using Shamir's scheme (polynomial interpolation over a finite field).
-2. Each share is distributed to a trusted peer — a family member, a friend, a lawyer — or stored in a geographically-separated secure location.
+2. Each share is distributed to a trusted peer (a family member, a friend, a lawyer) or stored in a geographically-separated secure location.
 3. Any M of the N shares can reconstruct the recovery key. Fewer than M shares reveal nothing about the key (information-theoretic guarantee, not merely computational).
-4. The user maintains a **recovery blob** containing the vault's Master Vault Keys wrapped with a recovery-derived KEK. The blob can be stored openly — on cloud storage, on a factory-reset KeyMaster, on a USB drive — because it is ciphertext that only the recovery key can decrypt.
+4. The user maintains a **recovery blob** containing the vault's Master Vault Keys wrapped with a recovery-derived KEK. The blob can be stored openly (on cloud storage, on a factory-reset KeyMaster, on a USB drive) because it is ciphertext that only the recovery key can decrypt.
 5. To recover: reconstruct the recovery key from M shares, combine it with a factory-reset KeyMaster and the recovery blob, and the vault is restored. The user sets a new PIN and resumes operation.
 
 **Shares as paper or as devices:**
@@ -1029,7 +1029,7 @@ Not appropriate for: Protection against adversaries who will search exhaustively
 
 Canonical test vectors will be published here once the KDF parameters and cipher
 selections are locked to the chosen security MCU (the PIN-stretch parameters are
-tuned to the part, not fixed in advance — see PIN Protection). Each vector will pin a
+tuned to the part, not fixed in advance; see PIN Protection). Each vector will pin a
 known input to its expected output so implementations can self-check against a
 reference. The structures below show the intended inputs; outputs are deliberately
 left blank until the parameters are final.
