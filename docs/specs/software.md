@@ -1,6 +1,6 @@
 # KeyMaster – Software Specification
 
-**Version:** 0.1 (Draft)
+**Version:** 0.2 (Draft)
 **Status:** Design-in-progress
 
 This document specifies the firmware and software architecture for KeyMaster. It is intended to be quotable by engineering firms for development estimates.
@@ -61,11 +61,13 @@ KeyMaster uses two processors with distinct responsibilities:
 ### Operating Modes
 
 
-| Mode           | Power | MCU    | AP     | USB Functions  | Trigger                             |
-| -------------- | ----- | ------ | ------ | -------------- | ----------------------------------- |
-| **Low-Power**  | <80mA | Active | Off    | CCID, HID only | Smart-card adapter or low-power USB |
-| **High-Power** | Full  | Active | Active | Full composite | Normal USB connection               |
-| **Backup**     | Full  | Active | Active | Device + Host  | Backup unit connected downstream    |
+| Mode                | Power | MCU    | AP     | USB / Net Functions            | Trigger                             |
+| ------------------- | ----- | ------ | ------ | ------------------------------ | ----------------------------------- |
+| **Low-Power**       | ≤ ~60 mA | Active | Off | CCID, HID keyboard, FIDO2 only | Smart-card adapter or low-power host (budget set by hardware spec §7) |
+| **High-Power**      | Full  | Active | Active | Full composite + vault + net   | Adequate power + unlock             |
+| **Backup / Headless** | Full | Active | Active | Sync port only, **vault stays LOCKED** | Designated-backup unit powered + networked (safe, dock, or host) |
+
+> **Headless (locked) sync is deliberate.** A backup unit, in a safe, a drawer, or plugged into a home machine, must replicate **without anyone entering a PIN**. This is cryptographically safe: sync moves *ciphertext*, authenticated by device certificates (device-bound keys, not PIN-derived). In this mode the device exposes **only** the mutually-authenticated sync port, with no web UI and no management services (smallest possible listening surface for an always-on, LAN-resident unit).
 
 ---
 
@@ -146,13 +148,33 @@ Commands:
 ```
 - Standard USB HID keyboard
 - Auto-type credential injection
-- Configurable typing speed (evade detection)
-- Support for special characters via Alt codes
+- Configurable typing speed (for reliability across hosts)
+- Keyboard-layout awareness: the host's active layout maps scancodes to
+  characters, so auto-type must account for layout (a fixed scancode is not a
+  fixed character on non-US layouts). Unicode/special characters handled per-OS.
 
 Interface:
 - hid_type_string(string, speed_ms)
 - hid_type_credential(entry_id, field)
 - hid_send_key(keycode, modifiers)
+```
+
+**FIDO2 / CTAP2 Authenticator**
+
+```
+- Dedicated FIDO USB-HID interface (distinct from the keyboard HID)
+- CTAP2 command set; KeyMaster IS a standards FIDO2 authenticator
+- Discoverable (resident) credentials → passkeys stored on-device
+- User presence (touch) + user verification (PIN) already native to the device
+- Phishing-resistant: the private key never leaves the device; only a signature
+  over the site's challenge is returned, and the device will not sign for the
+  wrong origin
+- Runs in the low-power domain → passkey login works on an untrusted host in
+  Minimal Mode, with no vault exposed
+- Passkeys are stored as ordinary vault entries (keypair + relying-party metadata)
+  → they inherit profiles, deniability, sync, and BACKUP (portable across the
+  user's paired devices — a property phone/most-token passkeys lack)
+- Reference implementations to draw on: Google OpenSK, SoloKeys firmware
 ```
 
 **CDC ACM (Serial)**
@@ -170,10 +192,15 @@ All cryptographic operations run on the MCU, using hardware accelerators when av
 Algorithms:
 - AES-256-GCM (vault encryption)
 - ChaCha20-Poly1305 (alternative AEAD)
-- X25519 (key agreement)
-- Ed25519 (signatures)
+- X25519 (key agreement) — per-profile keypair; used to SEAL shared entries to a
+  recipient's public key (enables cross-profile and cross-device sharing; see
+  security spec)
+- Ed25519 (signatures; firmware, device attestation, SSH/GPG)
 - SHA-256, SHA-512 (hashing)
-- Argon2id (PIN stretching)
+- PIN-stretch KDF (memory-hard, Argon2id-family) — parameters TUNED TO THE CHOSEN
+  MCU (target ~1s unlock within on-chip RAM), not fixed here. Memory-hardness is a
+  backstop, not the primary defense (see security spec: the hardware attempt cap and
+  the un-extractable device secret provide the actual protection)
 - HKDF (key derivation)
 
 Interface:
@@ -257,9 +284,8 @@ Secure RAM (TrustZone, 32 KB):
 
 ### Target Platform
 
-- **Processor:** ARM Cortex-A7 or A53 (Linux-capable)
-- **Examples:** NXP i.MX6UL, STM32MP157, Allwinner V3s
-- **RAM:** 256 MB minimum (512 MB preferred)
+- **Processor:** USB3-class, quad Cortex-A53/A55 (or better), with a hardware crypto engine that supports software-invisible keys and secure boot. See the hardware spec's AP class for requirements and example parts (e.g. i.MX 8M Plus / i.MX 95 / RK3568 / STM32MP25). The design partner chooses; this spec does not pin a part.
+- **RAM:** 512 MB preferred (256 MB minimum)
 - **Storage:** 8-16 GB eMMC for OS and tools
 
 ### Operating System
@@ -303,12 +329,18 @@ Composite Device Configuration:
         └── ffs.ccid/     (FunctionFS for CCID)
 ```
 
-#### 2. FUSE Vault Filesystem (kmvaultfs)
+#### 2. Vault Presentation (kmvaultfs)
 
-The vault is presented to hosts as a FUSE filesystem:
+The vault is presented to *trusted* hosts as a filesystem, but **not** by exporting a raw USB mass-storage block device. USB mass storage exports a block device with an on-disk filesystem (FAT/exFAT), which cannot represent the symlinked, decrypt-on-demand, permission-controlled layout below, and would force plaintext onto a host-mounted volume. Instead:
+
+- **Host-side FUSE (recommended):** a small host helper mounts the vault via FUSE, talking to the device over the USB-Ethernet control API. The device serves decrypted content on demand, per active profile and host policy; plaintext lives only in the host helper's memory, never on a host disk as a mounted volume. This is what `km mount ~/vault` does.
+- **Alternative:** the device serves the same tree over a local protocol (e.g. WebDAV) on the USB-Ethernet link.
+
+On *untrusted* hosts, no filesystem is presented at all, only CCID / HID / FIDO2 (Minimal Mode).
 
 ```
-Mount Point: /mnt/vault (internal), exported via USB mass storage
+Internal mount: /mnt/vault (device side)
+Host access:    host-side FUSE over the device API (NOT raw USB mass storage)
 
 Virtual Layout:
   /vault/
@@ -359,9 +391,27 @@ struct fuse_operations kmvault_ops = {
 
 #### 3. Sync Daemon (kmsyncd)
 
-Handles synchronization between KeyMaster units:
+Handles synchronization between KeyMaster units. A backup replicates whenever it is
+**powered and reachable**; if offline, it catches up the instant it is next
+connected. There is no radio, so "on the network" always means physically connected
+to power and a data path. Supported connection paths:
 
 ```
+Sync paths:
+  1. Direct KeyMaster-to-KeyMaster over USB-C (manual, no network needed)
+  2. Plugged into a computer running the km helper — the USB-Ethernet gadget link is
+     point-to-point, so the helper relays/reflects to the LAN (mDNS reflector + proxy
+     for the sync protocol only; NOT a general internet gateway)
+  3. Standalone on the LAN via a USB-C Ethernet adapter (KeyMaster as USB host on one
+     port, wall power on the other) — a first-class network node, no computer needed;
+     PoE inside a safe is a natural "backup dock"
+
+Anti-PoisonTap rule (REQUIRED):
+  - The USB-Ethernet gadget MUST advertise link-local scope only — NEVER a default
+    route or DNS server in its DHCP offers. A USB device that offers itself as a
+    route is indistinguishable from the PoisonTap attack class and will (rightly) be
+    flagged by enterprise security tooling. This is also a selling point for IT.
+
 Discovery:
   - mDNS/DNS-SD: _keymaster._tcp
   - USB-Ethernet link-local
@@ -473,30 +523,33 @@ Functions: Storage mount, sync, full management
 
 ## Vault Filesystem
 
-### On-Disk Format
+### On-Disk Format — the "object-soup" model
 
-The vault is stored in SPI-NAND flash as an encrypted object store:
+The vault is stored in SPI-NAND flash as an encrypted object store designed so that **an attacker who images the flash cannot count profiles, cannot tell profile objects from entry objects, and cannot tell used space from decoy space.** This is what makes hidden/duress profiles deniable (see the security spec for the full argument and its residual limits). The rules:
+
+- **Uniform, opaque objects.** Every object is a fixed-quantized, encrypted blob. There is **no plaintext `type` tag**; an object's kind (profile root, entry, group, attachment, passkey, decoy) is visible only *after* decryption, which requires the PIN. (The earlier format exposed `type` and per-recipient `profile_id` in plaintext; both are removed, since they let an attacker enumerate profiles.)
+- **One device-wide salt**, stored once, *not* a salt per profile. (A per-profile salt list would let an attacker count profiles by counting salts.) Anti-precomputation is provided by the un-extractable device secret, not by unique salts.
+- **PIN-derived lookup.** A profile's root object is *located and keyed by the PIN itself* (PIN → device secret → derive object address + key). With no PIN there is no way to find or recognize a profile root; a failed lookup is indistinguishable from "no more profiles." No profile count is stored anywhere.
+- **Random-fill at initialization.** The whole store is filled with random at setup, so total occupancy always looks "full" regardless of contents (storage is cheap; pad liberally).
+- **Effectively arbitrary profiles.** Because nothing per-profile is stored in a countable way, the number of profiles is bounded only by total storage, not by a fixed slot count.
 
 ```
-Physical Layout (SPI-NAND, 256 MB example):
-  Block 0-15:     Superblock + metadata (redundant)
-  Block 16-31:    Object index
-  Block 32+:      Object data (content-addressed)
+Physical Layout (SPI-NAND, example):
+  Reserved:   Superblock + redundant metadata (carries NO profile count)
+  Body:       Uniform encrypted objects + random fill, content/PIN-addressed
 
-Superblock:
-  magic: "KMVAULT1"
-  version: 1
-  created: timestamp
-  device_id: UUID
-  root_hash: SHA-256 of index root
+Superblock (reveals nothing about profiles):
+  magic, format-version, device_id, one device-wide salt
 
-Object Format:
-  object_id: SHA-256(content)
-  type: blob | tree | entry | profile | host
-  size: uint32
-  content: encrypted bytes
-  recipients: [{profile_id, wrapped_dek}]
+Object Format (uniform for every object — profile, entry, decoy alike):
+  locator:   PIN-derived or content-derived address (no plaintext type)
+  body:      fixed-quantized AEAD ciphertext (type/role visible only after decrypt)
+  recipients: fixed-size BAG of anonymous wrapped-keys, padded with decoys
+              (each = the entry key sealed to one recipient's key; trial-decrypt
+               to find yours — NO profile_id labels; see Sharing, below)
 ```
+
+> **Garbage-collection rule (critical).** While unlocked as one profile, the device *cannot see* another profile's objects, so GC must be conservative: remove only objects the **currently unlocked** profile clearly orphaned, and never touch objects it cannot account for. (Deleting "unreferenced" objects naively would silently destroy hidden profiles, the classic hidden-volume trap.)
 
 ### Entry Format (XML)
 
@@ -637,6 +690,71 @@ Tombstones:
 
 ---
 
+## Pairing & Sharing
+
+Sync between a user's *own* units and sharing an entry with *another person* use the same underlying primitive: **seal to a public key.** Each profile has an X25519 keypair; you seal an entry's key to a recipient's public key so only they can open it.
+
+### No global directory — private contacts
+
+There is **no published directory of public keys.** You hold a recipient's public key *privately, inside your own unlocked vault*, as a "contact." This preserves deniability (nothing about who-can-receive is published, so nothing is enumerable) and means **you must unlock to share** (both the entry and your contacts live behind your PIN). A hidden profile simply never participates in a pairing, so its key never leaves the device.
+
+### Pairing channels (establishing a contact)
+
+KeyMaster has an e-paper display but **no camera**, so it can *show* a QR but not *read* one.
+
+```
+- KeyMaster ↔ KeyMaster:  plug one into the other over USB-C (primary method)
+- KeyMaster ↔ phone/PC:   show a QR on the e-paper; the phone/PC camera reads it
+- Remote:                 exchange over the network (rides the sync transport)
+
+MITM defense (all channels):
+  Both devices display a short authentication string derived from the exchanged
+  keys; the humans confirm they match and press-confirm on both keypads.
+  (Signal-safety-number / Bluetooth-numeric-comparison pattern.)
+```
+
+### Sharing flow
+
+```
+Share:    unlock → pick entry → pick a stored contact → seal the entry key to their
+          public key → deliver the sealed blob
+Deliver:  transport-agnostic and ASYNCHRONOUS — the sealed blob is opaque ciphertext
+          only the recipient can open, so it can ride the sync link OR an untrusted
+          relay (email/cloud drop); the two devices need not be online at once
+Receive:  recipient unlocks → their private key opens the blob → entry lands in vault
+Group:    seal to each recipient's key → the entry's recipient bag holds one sealed
+          copy per recipient (same anonymous, decoy-padded bag as the storage format)
+
+Rotation/revocation (v1): if a contact rotates their key or loses a device, re-pair
+  to update the key and re-encrypt shared entries on the next sync.
+```
+
+---
+
+## Timekeeping
+
+KeyMaster keeps wall-clock time so TOTP works anywhere and time-based features are reliable, despite being batteryless. Time is acquired **opportunistically** and degrades gracefully, using whatever the environment offers:
+
+```
+Time cascade (authoritative → best-effort → last resort):
+  1. Supercap-backed RTC ..... primary source; holds time for weeks-to-months unpowered
+  2. NTP ..................... when the AP is networked (standalone adapter / helper)
+  3. km helper / extension ... pushes host time on enumeration
+  4. Host-clock scavenge ..... best-effort over a bare point-to-point link:
+       - NTP query (some hosts answer) — best when present
+       - SMB2 NEGOTIATE time (many Windows hosts) — full date+time
+       - ICMP timestamp — time-of-day only (drift check; no date)
+     Probe ONLY on user TOTP request when the clock is unknown/stale; one quiet
+     attempt (an unknown USB NIC scanning ports looks like an implant otherwise)
+  5. Manual keypad entry ..... universal offline fallback after long dormancy
+
+Trust rule: scavenged/host time is UNTRUSTED — drives TOTP DISPLAY ONLY, never
+  security timers (rate-limit backoff runs on internal/powered time only, so an
+  attacker cannot skip lockout delays by warping the host clock).
+```
+
+---
+
 ## Host Software
 
 ### CLI Tool (km)
@@ -695,17 +813,22 @@ Mode 2: PKCS#11 Provider
   - ssh -I /usr/lib/keymaster-pkcs11.so user@host
 ```
 
-### KeePassXC Integration
+### KeePass-Family Compatibility (example integration, not yet committed)
+
+The `.kdbx` format is the standard interchange for the **KeePass family** of managers
+(KeePassXC on the desktop; KeePassDX, KeePassium and others on mobile). Targeting it is
+a strategic choice, not just a file-format convenience: it lets KeyMaster **piggyback on
+a mature client ecosystem** (browser extensions, mobile autofill, established UX) rather
+than building all of that from scratch. Which manager(s) to officially support is an open
+decision; `.kdbx` keeps the options open.
 
 ```
-Database Location:
-  - ~/.vault/ (FUSE mount from device)
-  - KeePassXC opens XML files directly
-  - Changes saved back through FUSE → encrypted on device
-
-Configuration:
-  - KeePassXC browser integration works unchanged
-  - Secret Service API via device
+KeePass-family apps open .kdbx databases (not raw XML), so compatibility is via:
+  - Export/import: km export --format=kdbx  /  km import file.kdbx
+  - Or a live-sync bridge that presents a .kdbx view over the FUSE mount and
+    writes changes back (encrypted on device)
+  - The family's browser integration / Secret Service can then work against that,
+    so users get autofill and mobile clients without KeyMaster reimplementing them
 ```
 
 ---
@@ -777,28 +900,37 @@ Update Signing:
 ### Phase 1: Core Functionality
 
 
-| Priority | Component          | Description                |
-| -------- | ------------------ | -------------------------- |
-| P0       | MCU keypad driver  | Unlock flow                |
-| P0       | MCU display driver | Status and menus           |
-| P0       | MCU crypto engine  | Vault encryption           |
-| P0       | MCU USB CCID       | Smart card emulation       |
-| P0       | MCU USB HID        | Keyboard auto-type         |
-| P1       | MCU SE interface   | Secure element integration |
-| P1       | AP FUSE filesystem | Vault mount                |
-| P1       | AP USB gadget      | Composite device           |
+> Phasing here is *implementation sequencing*, separate from the *capability
+> envelope* the specs describe. A capability appearing in a later phase is not a
+> smaller product, just later firmware on the same designed-in hardware.
+
+| Priority | Component            | Description                          |
+| -------- | -------------------- | ------------------------------------ |
+| P0       | MCU keypad driver    | Unlock flow (physical-only entry)    |
+| P0       | MCU display driver   | Status and menus                     |
+| P0       | MCU crypto engine    | Vault encryption (object-soup store) |
+| P0       | MCU secret + wipe    | Un-extractable device secret, attempt cap, tamper/timeout zeroization |
+| P0       | MCU USB CCID         | Smart card emulation                 |
+| P0       | MCU USB HID          | Keyboard auto-type                   |
+| P0       | RTC / timekeeping    | Time retention + opportunistic re-sync |
+| P1       | MCU FIDO2/CTAP2      | Passkey authenticator                |
+| P1       | MCU SE interface     | Secure element integration           |
+| P1       | AP vault daemon      | Host-side FUSE presentation          |
+| P1       | AP USB gadget        | Composite device                     |
 
 ### Phase 2: Full Features
 
 
-| Priority | Component             | Description           |
-| -------- | --------------------- | --------------------- |
-| P0       | Sync daemon           | Device-to-device sync |
-| P0       | Host CLI tool         | User interface        |
-| P1       | Web UI                | Local management      |
-| P1       | Browser extension     | Auto-fill             |
-| P2       | KeePassXC integration | Compatibility         |
-| P2       | SSH agent             | Key management        |
+| Priority | Component             | Description                        |
+| -------- | --------------------- | ---------------------------------- |
+| P0       | Sync daemon           | Device-to-device sync + headless (locked) mode |
+| P0       | Pairing + sharing     | Private contacts, sealed-box sharing |
+| P0       | Host CLI tool         | User interface                     |
+| P1       | AP bulk-crypto        | Inline encryption of external media |
+| P1       | Web UI                | Local management                   |
+| P1       | Browser extension     | Auto-fill + passkey                |
+| P2       | KeePass-family compat | Compatibility (kdbx export/bridge) |
+| P2       | SSH / GPG agent       | Key management                     |
 
 ### Phase 3: Polish
 
@@ -845,3 +977,4 @@ Update Signing:
 | Version | Date    | Author | Changes       |
 | ------- | ------- | ------ | ------------- |
 | 0.1     | 2025-09 | -      | Initial draft |
+| 0.2     | 2026-07 | -      | FIDO2/passkey authenticator; object-soup on-disk format; host-side FUSE (not USB mass storage); headless/locked sync + sync paths + anti-PoisonTap; pairing & sharing (sealed-box); timekeeping cascade; USB3-class AP; layout-aware auto-type |

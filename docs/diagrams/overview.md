@@ -6,11 +6,12 @@ This directory contains technical diagrams for the KeyMaster project.
 
 ### crypto-flow.dot
 Graphviz diagram showing the cryptographic key derivation flow:
-- PIN → Argon2id → Profile Key
-- DRS + Profile Key → HKDF → KEK
+- PIN → Argon2id (params tuned to the security MCU) → Profile Key
+- DRS (un-extractable device secret) + Profile Key → HKDF → KEK
 - KEK → unwrap → MVK
-- MVK → unwrap → DEK (per-entry)
-- Multi-recipient key wrapping
+- MVK → per-entry DEK
+- Sharing via an anonymous recipient bag: the DEK sealed to recipients' X25519
+  public keys (own profile and contacts), padded with decoys, found by trial-decrypt
 
 **To render:**
 ```bash

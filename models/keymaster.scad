@@ -3,6 +3,11 @@
 // Hardware Password Manager and Data Vault
 // ============================================
 //
+// NOTE: This model is ILLUSTRATIVE — a rough massing study only. Exact port
+// placement, materials (the spec calls for a stainless shell), and features are
+// defined by docs/specs/hardware.md, which is authoritative. Do not treat the port
+// positions or wall callouts here as the design of record.
+//
 // Face A (bottom): Recessed capacitive keypad (3x4)
 // Face B (top): E-paper display with LED illumination on sides
 // Top edge (short): Keychain hole centered

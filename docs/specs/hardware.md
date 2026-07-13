@@ -8,13 +8,16 @@ This document provides technical hardware requirements for engineering teams to 
 
 KeyMaster is a USB-powered hardware password manager and data vault with:
 
-- Dual-processor architecture (MCU + Application Processor)
+- **Dual-processor architecture:** a small always-on **security MCU** plus a higher-power **application processor (AP)**. §3 explains why the two are kept separate.
 - Two power domains (low-power and high-power)
-- On-device PIN entry and display
-- Smart-card and keyboard emulation
-- Encrypted vault storage with optional bulk storage
+- On-device PIN entry and e-paper display
+- Smart-card, FIDO2/passkey, and keyboard emulation
+- Encrypted vault storage, with a hardware crypto path capable of line-rate encryption of external media
+- Physical-only PIN entry, an un-extractable device secret, and tamper response that erases key material on intrusion
 
 **Target:** Prototype-ready design package including schematics, PCB layout, enclosure CAD, and firmware skeleton.
+
+> **A note on component choices in this document.** Every specific part named below is an *existence-proof example* of a class that meets a requirement, not a mandated selection. Final silicon, passives, and mechanicals are the design partner's call, optimized for availability, cost, and their own experience. This spec defines the *envelope* and demonstrates the path is buildable with parts that exist today.
 
 ---
 
@@ -26,8 +29,8 @@ KeyMaster is a USB-powered hardware password manager and data vault with:
 | Parameter  | Specification                                |
 | ---------- | -------------------------------------------- |
 | Dimensions | ~2" × 3" × 0.6" (50 × 75 × 15 mm)        |
-| Weight     | <100g                                        |
-| Material   | Machined aluminum shell, polycarbonate bezel |
+| Weight     | Modest heft; the stainless shell's mass is part of the physical-security story |
+| Material   | Stainless-steel shell, polycarbonate bezel (see §10) |
 
 ### Face A: Keypad
 
@@ -125,7 +128,9 @@ KeyMaster is a USB-powered hardware password manager and data vault with:
 
 ---
 
-## 4. Low-Power Domain
+## 4. Low-Power Domain (Security Core)
+
+The low-power domain is the **security core** and is **architecturally non-negotiable**: it handles PIN entry, unlock, and the vault's core cryptography, and it must run **standalone**, with the application processor completely powered off, on as little as a smart-card reader can supply (see §7). This is what lets KeyMaster act as a pure smart card / FIDO authenticator on a legacy reader or a power-starved host, and it keeps the small, auditable security domain **physically separate** from the large, complex, network-facing Linux brain. Do not collapse this domain into the AP.
 
 ### MCU Requirements
 
@@ -138,33 +143,44 @@ KeyMaster is a USB-powered hardware password manager and data vault with:
 | Security  | TrustZone or equivalent secure world                             |
 | GPIO      | Sufficient for 12-key capacitive touch (or I2C touch controller) |
 | SPI       | 2+ channels (EPD, flash, SE)                                     |
-| I2C       | 1+ channel (SE, sensors)                                         |
+| I2C       | 2+ channels (SE, RTC, sensors)                                   |
+| USB HID   | Must support keyboard + FIDO2/CTAP2 HID interfaces (see software spec) |
 | Power     | <15 mA active @ 48 MHz, <10 µA sleep                            |
+| Secret    | A **true hardware-secret key** (not merely a public unique ID) to anchor the Device Root Secret (see note below) |
 
-**Candidate MCUs:**
+**MCU class:** Cortex-M33 (or M4) with hardware crypto, a secure world (TrustZone or equivalent), and enough on-chip RAM to run the PIN-stretch KDF (see security spec; parameters are tuned to the chosen part, not fixed here). **Example parts that meet this today:** STM32L562/L552, STM32U575/U585, NXP LPC55S69, Nordic nRF52840 (M4, adds BLE for a future radio option).
 
-- STM32L562 / STM32L552 (Cortex-M33, TrustZone, crypto)
-- STM32U575 / STM32U585 (ultra-low-power, crypto)
-- NXP LPC55S69 (dual Cortex-M33, crypto, USB)
-- Nordic nRF52840 (Cortex-M4, crypto, USB, BLE for future)
+> **Device-secret note.** The Device Root Secret (DRS) must be anchored in something an attacker cannot read out. The chip's public "unique device ID" is **not** a secret and must not be used for this. Acceptable anchors: a dedicated secure element (best), or an MCU with a true hardware-secret key facility (e.g. parts with a device-unique hardware key usable by the crypto engine but never exposed to software). Treat this as a hard selection criterion for the MCU/SE.
 
-### Secure Element (Optional)
+### Real-Time Clock + Timekeeping Supercapacitor
 
+KeyMaster must keep wall-clock time across power removal so that **TOTP works on any host** and time-based features (sync, dead-man's-switch) are reliable. Because the device is batteryless, timekeeping is held by a **dedicated supercapacitor** backing an ultra-low-power RTC.
+
+| Parameter        | Specification                                                        |
+| ---------------- | ------------------------------------------------------------------- |
+| RTC              | Ultra-low-power (≈ tens–hundreds of nA timekeeping); e.g. RV-3028-class |
+| Backup element   | Dedicated supercapacitor sized for **weeks-to-months** of retention (limit is supercap self-discharge, not RTC draw) |
+| Interface        | I2C to security MCU                                                  |
+| Re-sync sources  | Firmware refreshes time opportunistically (network NTP, host helper, host-clock scavenge); manual keypad entry as last resort (see security/software specs) |
+
+This preserves the "no battery to charge or replace" property while giving the device a trustworthy-enough local clock.
+
+### Secure Element (base: good / Pro: best)
+
+The device secret and attempt-counter live in tamper-resistant storage. Two tiers (see §11):
+
+- **Base — "good":** the device secret is **split across physically separate stores**: a true MCU hardware-secret key (read-out disabled) plus random shares in locked flash and EEPROM, so no single memory read-out reveals it, plus MCU-level tamper inputs. (Key-splitting is used in shipping MCU-only tokens; see security spec.)
+- **Pro — "best":** a dedicated secure element that stores the secret and performs the unlock operation *internally* (the secret never leaves it), plus a tamper mesh.
 
 | Parameter     | Specification                                  |
 | ------------- | ---------------------------------------------- |
 | Interface     | I2C or SPI (ISO7816 optional for adapter mode) |
 | Applets       | OpenPGP, PIV, or FIDO2 capable                 |
-| Certification | Common Criteria EAL5+ preferred                |
-| Key storage   | Minimum 3 key slots                            |
+| Certification | Common Criteria EAL5+ / FIPS-capable preferred (supports the certifiability goal, §14a) |
+| Key storage   | Device secret + minimum 3 additional key slots |
 | Tamper        | Active tamper detection and zeroization        |
 
-**Candidate SEs:**
-
-- STMicroelectronics ST33 series
-- NXP JCOP (J3 series)
-- Infineon SLE78 / SLC37
-- Microchip ATECC608B (simpler, no JavaCard)
+**Example SEs:** STMicroelectronics ST33 series, NXP JCOP (J3), Infineon SLE78 / SLC37, Microchip ATECC608B (simpler, no JavaCard). *(An exotic alternative worth evaluating with the design partner: a PUF (physically-unclonable-function) secret derived from chip manufacturing randomness, so there is nothing stored to extract. It needs error-correction/helper-data plumbing; named as an option, not a requirement.)*
 
 ### Vault Storage
 
@@ -185,21 +201,29 @@ KeyMaster is a USB-powered hardware password manager and data vault with:
 
 ### Application Processor Requirements
 
+The AP runs Linux for the composite USB gadget, the vault-presentation daemon, sync, and **line-rate bulk encryption**. KeyMaster can act as an inline encrypting bridge for external media (plug a drive into the downstream port; KeyMaster encrypts/decrypts every byte in transit), and that data path runs on the AP's hardware crypto engine. That capability, not the small vault, is what sets the AP's performance floor.
 
-| Parameter  | Specification                        |
-| ---------- | ------------------------------------ |
-| Core       | ARM Cortex-A7 or Cortex-A35          |
-| RAM        | 256 MB+ DDR3/DDR3L                   |
-| USB        | USB 2.0 OTG or USB 3.x host          |
-| Interfaces | SPI, I2C, UART for MCU communication |
-| Linux      | Mainline kernel support preferred    |
-| Power      | Power-gateable from low-power domain |
+**AP class (not a specific part; see the note in §1):**
 
-**Candidate APs:**
+| Parameter   | Requirement                                                                 |
+| ----------- | --------------------------------------------------------------------------- |
+| Core        | Quad Cortex-A53 / A55-class (or better), Linux-capable                       |
+| RAM         | 512 MB+ (256 MB minimum)                                                     |
+| USB         | **USB3-class**, ideally **two** dual-role controllers (one host → external drive, one device → upstream host) for the encrypting-bridge path |
+| Crypto      | Hardware AES engine with a **software-invisible key path** (keys usable by the engine but never exposed to the OS) |
+| Secure boot | Verified/secure boot with a documented, mainline-supported chain            |
+| Linux       | Mainline kernel support; long-term (industrial) availability                 |
+| Interfaces  | SPI, I2C, UART for MCU communication                                          |
+| Power       | Power-gateable from the security domain (off entirely in low-power mode)      |
 
-- NXP i.MX6UL / i.MX6ULL (mature, good Linux support)
-- STM32MP157 (Cortex-A7, OpenSTLinux)
-- Allwinner V3s (low cost, limited support)
+**Example parts that meet this class today** (the design partner chooses; verify USB3-controller count, the invisible-key crypto facility, mainline status, and availability horizon per part):
+
+- **NXP i.MX 8M Plus:** quad A53, two USB 3.0 dual-role, CAAM crypto (supports "black keys" usable-but-invisible-to-software), HAB secure boot, strong mainline, long industrial availability. Proven, security-oriented.
+- **NXP i.MX 95:** newer; A55, USB3/PCIe, on-die EdgeLock secure enclave. Strongest security pedigree.
+- **Rockchip RK3568:** quad A55, dual USB3, PCIe/SATA, crypto block. Best cost/capability; consumer-grade secure-boot ecosystem and shorter availability guarantees.
+- **STMicro STM32MP25:** A35 + integrated M33, USB3, ST security IP. Mirrors the two-processor model on one die (a consolidation option; note the physical-isolation trade-off in §3).
+
+> **Why not a cheap USB-2 AP?** Presenting fast *encrypted external storage* to a host requires a USB3 device controller in the AP; you cannot add speed with a downstream bridge without moving that data outside the AP's encryption path. USB3 is therefore required *for the encrypting-bridge capability*. The everyday vault itself is small and runs fine at USB 2.0.
 
 ### OS Storage
 
@@ -217,40 +241,41 @@ KeyMaster is a USB-powered hardware password manager and data vault with:
 ### Bulk Storage (Optional)
 
 
-| Component     | Size       | Purpose                         |
-| ------------- | ---------- | ------------------------------- |
-| MicroSD slot  | Up to 1 TB | User data, encrypted partitions |
-| M.2 2230 NVMe | Up to 1 TB | Pro SKU high-speed storage      |
+| Component     | Size       | Purpose                                          |
+| ------------- | ---------- | ------------------------------------------------ |
+| MicroSD slot  | Up to 1 TB | User data, encrypted partitions                  |
+| M.2 2230 NVMe | Up to 1 TB | Optional high-speed bay (Pro/future; needs an AP with PCIe) |
+
+> Onboard NVMe is an *optional* high-speed storage bay, not a base-model requirement. It depends on the chosen AP exposing PCIe. The encrypting-bridge use case above targets **external** drives on the downstream USB-C port and does not require onboard NVMe.
 
 ---
 
 ## 6. USB Subsystem
 
-### Speed Architecture
+### Interface Topology
 
-The device uses a dual-speed design:
+Two processors present interfaces to the host through an internal USB hub. **The hub does not merge the two processors into one logical device;** the host enumerates the hub with the devices behind it. The security MCU's low-bandwidth interfaces (CCID, HID keyboard, FIDO2) speak USB 2.0; the AP presents the composite functions (Ethernet, mass storage / vault presentation) at USB3-class speed and **passes CCID/HID through from the MCU** when it is powered, so the host sees a single coherent KeyMaster.
 
-- **USB 2.0 Full Speed (12 Mbps):** MCU provides CCID and HID interfaces. These low-bandwidth functions (smartcard commands, keyboard input) don't need high speed, and embedded MCUs only support USB 2.0 FS.
-- **USB 3.2 Gen 2 (10 Gbps):** AP provides mass storage (UASP). Storage access benefits from high bandwidth, especially for the Pro SKU with NVMe. The USB 3.2 hub aggregates both processors' interfaces into a single composite device.
+- **Security MCU (USB 2.0 Full/High Speed):** CCID, HID keyboard, and FIDO2/CTAP2. Low-bandwidth by nature; runs even when the AP is off (this is the always-available smart-card / passkey path).
+- **AP (USB3-class):** Ethernet-over-USB, vault presentation, and, for the encrypting-bridge use case, line-rate encrypted mass storage. Speed here follows the chosen AP (see §5).
 
-The host sees one composite device. Low-speed interfaces (CCID, HID) run at USB 2.0 speeds; storage runs at USB 3.2 speeds.
+### Port Configuration: two fully dual-role USB-C ports
 
-### Port Configuration
+Both USB-C ports are **fully dual-role in data and power**, and several use cases below depend on that flexibility. Data-role and power-role negotiate independently under USB-C, so all of this works regardless of USB2-vs-USB3 data speed:
 
-Both USB-C ports are **Dual-Role Power (DRP)** capable:
-
-- Either port can be upstream (device to host)
-- Either port can be downstream (host to peripherals)
-- Automatic role detection with manual override
+- Either port can be **upstream** (device to host) or **downstream** (host driving a peripheral).
+- **Phone + power passthrough:** plug into a phone (KeyMaster is a *data device* to the phone) while a wall charger on the other port powers KeyMaster **and** charges the phone through it. (Phones have one port; this is the "use it with power on your phone" case.)
+- **Standalone on a network:** KeyMaster acts as USB *host* on one port to drive a USB-C Ethernet adapter, while sinking wall power on the other, giving a self-contained networked backup with no computer involved (see software spec, sync).
+- **Direct KeyMaster-to-KeyMaster:** two units connect USB-to-USB for pairing and sync.
 
 ### USB Controllers
 
 
-| Function             | Controller                                  |
+| Function             | Example part(s)                             |
 | -------------------- | ------------------------------------------- |
 | Type-C PD (per port) | TI TPS65987 / TPS65988 or Cypress CCG3/CCG6 |
-| USB 3.2 Gen 2 Hub    | VIA VL830 or Genesys GL3590 (2-4 port)      |
-| Upstream selector    | USB 3.x crosspoint switch for failover      |
+| USB hub              | USB3-class hub, e.g. VIA VL8xx or Genesys GL35xx |
+| Upstream selector    | USB crosspoint switch for role/failover     |
 
 ### USB Device Functions (Composite Gadget)
 
@@ -269,9 +294,11 @@ When acting as USB device to host:
 
 | Capability     | Specification                                      |
 | -------------- | -------------------------------------------------- |
-| Sink           | 5V/3A minimum; PD negotiation for higher           |
-| Source         | 5V/1.5A to downstream port or connected device     |
-| Charge-through | Sink on Port B, source to upstream phone on Port A |
+| Sink           | 5V/3A minimum; PD negotiation for higher (a **≥30 W** input is recommended when charge-through to a phone is expected) |
+| Source         | 5V/1.5A to a downstream peripheral; higher to a phone when input headroom allows |
+| Charge-through | Sink wall power on one port; source to the connected phone on the other. The phone receives input power *minus* KeyMaster's own draw; state the budget in the PD design |
+
+> With only phone power (no wall supply), KeyMaster runs in the low-power security domain only (CCID / HID / FIDO2, i.e. auto-type and smart-card/passkey to the phone). Full composite mode (storage, sync) needs an adequate powered source.
 
 ---
 
@@ -280,29 +307,32 @@ When acting as USB device to host:
 ### Power Domains
 
 
-| Domain     | Components                              | Control                          |
-| ---------- | --------------------------------------- | -------------------------------- |
-| Always-on  | Type-C controllers, power management IC | Enabled when VBUS present        |
-| Low-power  | MCU, SE, EPD controller, SPI flash      | Always enabled when powered      |
-| High-power | AP, USB hub, eMMC, MicroSD, NVMe        | Load-switched, controlled by MCU |
+| Domain      | Components                                   | Control                          |
+| ----------- | -------------------------------------------- | -------------------------------- |
+| Always-on   | Type-C controllers, PMIC, RTC + its supercap | Enabled when VBUS present; RTC held by supercap when unpowered |
+| Low-power   | Security MCU, SE, EPD controller, SPI flash  | Always enabled when powered      |
+| High-power  | AP, USB hub, eMMC, MicroSD, optional NVMe    | Load-switched, controlled by the security MCU |
 
 ### Power States
 
 
-| State      | Active                  | Current    | Trigger                             |
-| ---------- | ----------------------- | ---------- | ----------------------------------- |
-| Off        | None                    | 0          | No VBUS                             |
-| Low-power  | MCU, SE, EPD            | <20 mA     | Default on plug-in, or adapter mode |
-| High-power | All                     | 200-500 mA | Adequate power + unlock             |
-| Sleep      | MCU (low), EPD persists | <1 mA      | Idle timeout                        |
+| State      | Active                  | Current (target) | Trigger                             |
+| ---------- | ----------------------- | ---------------- | ----------------------------------- |
+| Off        | RTC on supercap only    | ~0 (nA RTC)      | No VBUS                             |
+| Low-power  | MCU, SE, EPD            | ≤ ~60 mA         | Default on plug-in; adapter / smart-card-reader mode |
+| High-power | All                     | 200-500 mA+      | Adequate power + unlock (AP inline crypto can push higher) |
+| Sleep      | MCU (low), EPD persists | <1 mA            | Idle timeout                        |
+
+> The low-power budget target is set by the weakest supported source: an ISO 7816 smart-card reader supplies on the order of 60 mA, so the security domain must operate within that envelope. (This figure is the single source of truth; the software spec's mode table refers back to it.)
 
 ### Energy Storage
 
 
-| Component                            | Purpose                        |
-| ------------------------------------ | ------------------------------ |
-| Supercapacitor (1-2F @ 5.5V)         | E-paper safe refresh on unplug |
-| Supercapacitor (optional additional) | Tamper zeroization             |
+| Component                                   | Purpose                                             |
+| ------------------------------------------- | --------------------------------------------------- |
+| Supercapacitor (1-2 F)                      | E-paper safe refresh on unplug; power for tamper/timeout **key-zeroization** on power loss |
+| Supercapacitor (dedicated, generously sized) | **Timekeeping (RTC) retention for weeks-to-months** while unpowered (see §4) |
+| Tamper power                                | Sufficient stored energy to complete **secret wipe** on a tamper event even with USB power removed |
 
 ---
 
@@ -358,12 +388,15 @@ When acting as USB device to host:
 
 ### Materials
 
+The enclosure is a serious physical-security component, not just a case. KeyMaster is designed to take real-world abuse and to strongly resist intrusion.
 
 | Component   | Material                            | Notes                                |
 | ----------- | ----------------------------------- | ------------------------------------ |
-| Lower shell | Aluminum (6061-T6)                  | Heatsink, EMI shield, rigidity       |
-| Upper bezel | Polycarbonate or glass-filled nylon | EPD window, RF transparent if needed |
+| Shell       | **Stainless steel**                 | Chosen over aluminum: far harder to cut/drill/pry, corrosion-resistant, meaningful mass. |
+| Upper bezel | Polycarbonate or glass-filled nylon | EPD window, RF-transparent for a future radio |
 | Gaskets     | Silicone or EPDM                    | IP52-IP67 sealing                    |
+
+> **Thermal design requirement (consequence of stainless).** Stainless is a poor heatsink (~15× lower thermal conductivity than aluminum), and the USB3-class AP doing line-rate crypto dissipates real power. The design **must** include an internal thermal path, a heat spreader or conductive pad carrying AP heat to a deliberate dissipation surface, rather than relying on the shell as a heatsink. Note also that stainless is harder/costlier to machine; reflect in the BOM.
 
 ### Environmental
 
@@ -377,9 +410,11 @@ When acting as USB device to host:
 
 ### Tamper Features
 
-- Case-open detection switch to MCU
-- Optional active mesh (Pro model)
-- Supercapacitor-backed zeroization on tamper
+- Case-open detection to the security MCU
+- Active tamper mesh (Pro model) enveloping the secret store
+- Supercapacitor-backed **zeroization / secret wipe** on tamper, functional even without USB power
+
+> **False-positive discipline (design requirement).** Tamper response destroys key material, so thresholds must be tuned to tolerate real-world abuse (drop, cold, power dropouts, tolerances) without false-triggering; shipped products have destroyed customer data this way. Aggressive tamper response is acceptable here **only because a KeyMaster's data always lives on at least one paired backup and/or recovery shares** (see security spec, Recovery). If a unit wipes, whether from a real attack or a false trigger, the owner restores from the paired backup and replaces the hardware.
 
 ### Assembly
 
@@ -391,19 +426,21 @@ When acting as USB device to host:
 
 ## 11. SKU Matrix
 
+The two SKUs differ mainly in the **tier of physical secret protection**: a "good" tier and a "best" tier of the same security model (see security spec).
 
-| Feature        | KeyMaster           | KeyMaster Pro   |
-| -------------- | ------------------- | --------------- |
-| MCU            | Yes                 | Yes             |
-| Secure Element | No (footprint only) | Yes (populated) |
-| SPI-NAND       | 128 MB              | 512 MB          |
-| eMMC           | 8 GB                | 16 GB           |
-| MicroSD        | Yes                 | Yes             |
-| NVMe M.2 2230  | No                  | Optional bay    |
-| Tamper mesh    | No                  | Optional        |
-| Target price   | $80-120             | $150-200        |
+| Feature              | KeyMaster ("good")                              | KeyMaster Pro ("best")                    |
+| -------------------- | ----------------------------------------------- | ----------------------------------------- |
+| Security MCU         | Yes                                             | Yes                                       |
+| Device-secret anchor | MCU OTP fuses, read-out disabled + MCU tamper   | **Secret internal to a secure element**   |
+| Tamper mesh          | Case-open detect                                | Active mesh + case-open                   |
+| RTC + timekeeping supercap | Yes                                       | Yes                                       |
+| SPI-NAND (vault)     | 128 MB                                           | 512 MB                                    |
+| eMMC                 | 8 GB                                             | 16 GB                                     |
+| MicroSD              | Yes                                             | Yes                                       |
+| NVMe M.2 2230        | No                                              | Optional bay (AP-dependent)               |
+| Target price         | $80-120 *(indicative; see §14)*                 | $150-200 *(indicative; see §14)*          |
 
-Both SKUs use identical PCB; Pro adds SE, larger flash, optional NVMe.
+Both SKUs share a PCB; Pro populates the secure element, adds the tamper mesh, and increases flash. Both are sold, and strongly recommended, **as pairs** (backup is fundamental to the design; see README and security spec).
 
 ---
 
@@ -417,38 +454,43 @@ Both SKUs use identical PCB; Pro adds SE, larger flash, optional NVMe.
 | Bootloader   | Secure boot, signed image verification          |
 | Touch driver | Keypad scanning, debounce, pattern detection    |
 | EPD driver   | Partial/full refresh, text/graphics rendering   |
-| USB stack    | Device mode: CCID, HID, CDC                     |
-| Crypto       | Argon2id, AES-GCM, XChaCha20-Poly1305, ECC      |
+| USB stack    | Device mode: CCID, HID keyboard, **FIDO2/CTAP2 HID**, CDC |
+| Crypto       | PIN-stretch KDF, AES-GCM, ChaCha20-Poly1305, ECC (Ed25519 / X25519) |
 | SE interface | I2C/SPI commands for key operations             |
-| Vault logic  | Entry encryption/decryption, profile management |
+| RTC / time   | Read/maintain the RTC; opportunistic time re-sync; manual set |
+| Tamper/wipe  | Tamper + timeout **key zeroization**; attempt-counter management |
+| Vault logic  | Entry encryption/decryption, profile management (object-store model) |
 
 ### AP Software
 
 
-| Component    | Description                                       |
-| ------------ | ------------------------------------------------- |
-| Linux kernel | Mainline or vendor BSP                            |
-| USB gadget   | Composite: ECM/NCM/RNDIS, CCID, HID, Mass Storage |
-| FUSE daemon  | Vault filesystem presentation                     |
-| Sync daemon  | Backup unit discovery and replication             |
-| MCU bridge   | UART/SPI communication with MCU                   |
+| Component      | Description                                                   |
+| -------------- | ------------------------------------------------------------ |
+| Linux kernel   | Mainline preferred; verified boot                            |
+| USB gadget     | Composite: ECM/NCM/RNDIS, Ethernet, mass storage; CCID/HID/FIDO passthrough from MCU |
+| Vault daemon   | Presents the vault to trusted hosts (host-side FUSE over the device API; see software spec, **not** raw USB mass storage) |
+| Bulk-crypto    | Line-rate inline encryption of external media via the AP crypto engine |
+| Sync daemon    | Backup discovery + replication; **headless (locked) sync** mode |
+| MCU bridge     | UART/SPI communication with the security MCU                  |
 
 ---
 
 ## 13. Interfaces Summary
 
 
-| Interface | Controller | Peripheral           | Notes                      |
-| --------- |------------| -------------------- | -------------------------- |
-| SPI0      | MCU        | E-paper display      | 10 MHz+                    |
-| SPI1      | MCU        | SPI-NOR + SPI-NAND   | Quad-SPI preferred         |
-| I2C0      | MCU        | Secure Element       | 400 kHz                    |
-| USB       | MCU        | Upstream (FS device) | CCID/HID in low-power mode |
-| UART      | MCU ↔ AP   | Internal bridge      | 115200+ baud               |
-| USB       | AP         | Hub (host) + Gadget  | USB 3.x preferred          |
-| SDIO      | AP         | eMMC                 | 4-bit or 8-bit             |
-| SDIO      | AP         | MicroSD              | 4-bit                      |
-| PCIe      | AP         | NVMe (optional)      | x1 Gen2                    |
+| Interface | Controller | Peripheral            | Notes                                   |
+| --------- |------------| --------------------- | --------------------------------------- |
+| SPI0      | MCU        | E-paper display       | 10 MHz+                                 |
+| SPI1      | MCU        | SPI-NOR + SPI-NAND    | Quad-SPI preferred                      |
+| I2C0      | MCU        | Secure Element        | 400 kHz                                 |
+| I2C1      | MCU        | RTC (+ tamper sensors)| Timekeeping across power loss           |
+| GPIO/AIN  | MCU        | Tamper mesh / switch  | Triggers zeroization                    |
+| USB       | MCU        | Upstream (FS/HS device) | CCID / HID keyboard / FIDO2 in low-power mode |
+| UART      | MCU ↔ AP   | Internal bridge       | 115200+ baud                            |
+| USB       | AP         | Hub + gadget + host   | USB3-class; host role drives external drive / Ethernet adapter |
+| SDIO      | AP         | eMMC                  | 4-bit or 8-bit                          |
+| SDIO      | AP         | MicroSD               | 4-bit                                   |
+| PCIe      | AP         | NVMe (optional)       | x1; only if the chosen AP provides PCIe |
 
 ---
 
@@ -465,16 +507,29 @@ Both SKUs use identical PCB; Pro adds SE, larger flash, optional NVMe.
 
 ### Budget Estimate
 
+> **These figures are rough, order-of-magnitude planning placeholders — not quotes.** A secure, dual-processor device with on-device crypto, secure boot, CCID + FIDO2 + OpenPGP card emulation, an e-paper UI, capacitive touch, tamper response, and a Linux AP is a substantial firmware effort; realistic all-in prototype figures for work of this kind commonly run well into six figures. The ranges below are intended to frame *relative* effort and to be replaced by a real partner quote. Treat the firmware line especially as a floor, not a ceiling.
 
-| Component                        | Range           |
-| -------------------------------- | --------------- |
-| Concept refinement + feasibility | $5k - $10k      |
-| Schematic + PCB layout           | $10k - $20k     |
-| Enclosure design + prototyping   | $5k - $10k      |
-| MCU firmware MVP                 | $15k - $30k     |
-| **Total Phase 1**                | **$35k - $70k** |
+| Component                        | Indicative range |
+| -------------------------------- | ---------------- |
+| Concept refinement + feasibility | $5k - $15k       |
+| Schematic + PCB layout           | $15k - $40k      |
+| Enclosure design + prototyping (stainless, thermal path) | $10k - $25k |
+| Firmware MVP (security MCU + AP)  | $60k - $200k+    |
+| **Total Phase 1 (indicative)**   | **highly team-dependent; obtain a quote** |
 
-*Estimates vary significantly based on team experience and security depth.*
+*Estimates vary significantly with team experience, certification scope, and security depth.*
+
+### 14a. Certifiability as a Design Goal
+
+KeyMaster v1 is not expected to carry formal certification, but the hardware should be **designed so that certification (FIPS 140-3, NIST PIV, Common Criteria) would be achievable in a later revision.** This keeps the door open to government/enterprise programs (see README, smart-card interoperability) without reworking the platform. Cheap to plan for now:
+
+- Use a certifiable/certified secure element for the device secret.
+- Keep a clean **crypto-module boundary** (well-defined interfaces around the security domain).
+- Use only standards-approved algorithms with validated implementations.
+- Provide a hardware RNG with health testing per NIST SP 800-90B.
+- Map tamper response to the physical-security levels certification expects.
+
+This is a **design goal, not a v1 deliverable.**
 
 ---
 
@@ -500,8 +555,11 @@ Both SKUs use identical PCB; Pro adds SE, larger flash, optional NVMe.
 
 ## 16. Open Questions
 
-- Final MCU selection (pending crypto benchmark and availability)
-- SE selection (pending NDA review and applet availability)
-- AP selection (pending Linux BSP evaluation)
+- Final security-MCU selection (crypto benchmark, true hardware-secret facility, availability)
+- SE selection (NDA review, applet availability, certification path)
+- AP selection (USB3-controller count, invisible-key crypto engine, mainline BSP, availability horizon)
+- RTC + timekeeping-supercap sizing vs. target unpowered-retention window
+- Tamper-threshold tuning to avoid false positives across the environmental envelope
 - IP rating target (IP52 vs IP67 cost/complexity trade-off)
-- NVMe inclusion in base model vs Pro-only
+- Stainless-shell thermal path design for the AP
+- NVMe inclusion (Pro-only, AP-dependent)

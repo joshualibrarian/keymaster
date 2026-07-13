@@ -3,7 +3,7 @@
 
 *Note: "KeyMaster" is a working name; we're open to better suggestions.*
 
-KeyMaster is a small, open hardware USB device designed to be the practical foundation for everyday secure identity: passwords, SSH/GPG keys, OTPs, wallet seeds, and personal data. It's batteryless—powered entirely by the USB port it plugs into—and aims to be both trustworthy and convenient, usable on any host from locked-down corporate desktops to borrowed laptops and phones.
+KeyMaster is a small, open hardware USB device designed to be the practical foundation for everyday secure identity: passwords, SSH/GPG keys, OTPs, wallet seeds, and personal data. It's batteryless—powered entirely by the USB port it plugs into—and aims to be both trustworthy and convenient, usable on any host from locked-down corporate desktops to borrowed laptops, phones, and even smart-card readers.
 
 **Status:** Concept and design-in-progress. We're looking for an engineering partner and early collaborators to turn this into hardware and firmware.
 
@@ -20,7 +20,7 @@ Our digital lives are a mess of passwords, keys, and secrets scattered across de
 - They can be subpoenaed, hacked, or shut down
 - They require an internet connection and a trusted host
 
-**Local password managers** (KeePass, KeePassXC, etc.) keep your vault on your own machine, but:
+**Local password managers** (the KeePass family, etc.) keep your vault on your own machine, but:
 
 - You must first unlock the host to access your vault—two unlock steps, two attack surfaces
 - The host itself may be compromised (keyloggers, malware, prying eyes)
@@ -45,16 +45,15 @@ Our digital lives are a mess of passwords, keys, and secrets scattered across de
 
 ---
 
-## Drop-In for Existing Smart Card Infrastructure
+## Speaks the Language of Existing Smart Card Infrastructure
 
-KeyMaster implements **USB CCID**, the standard smart-card protocol, which means it interoperates with the massive installed base of infrastructure that already expects smart cards:
+KeyMaster implements **USB CCID** and the PIV/OpenPGP card protocols, the standards the large installed base of smart-card infrastructure already expects. That infrastructure needs no rework: readers, middleware, and smart-card logon just see a card.
 
-- **US Department of Defense Common Access Card (CAC)** — issued to millions of service members, reservists, civilian employees, and contractors
-- **Federal PIV credentials** under HSPD-12 — required for physical and logical access across federal agencies
-- **Healthcare smart-card programs** — HIPAA-sensitive logins, electronic prescribing, clinical workflows
-- **Enterprise PKI deployments** — defense contractors, financial institutions, and security-conscious corporations that have standardized on smart-card logon
+- **Enterprise PKI deployments:** defense contractors, financial institutions, and security-conscious corporations that have standardized on smart-card logon. A self-run PKI can provision KeyMaster **today**: issue it certificates, trust it, done.
+- **Federal PIV / DoD CAC:** KeyMaster speaks the same protocols these programs use. Serving as one of those credentials is a matter of the issuer provisioning and authorizing the device, plus formal **device certification** (FIPS 140-3, NIST PIV), a business and regulatory path, not a reader-infrastructure one. The hardware is being designed to make that certification *achievable* (see the hardware spec); it's a roadmap ambition, not a v1 claim.
+- **Healthcare smart-card programs:** HIPAA-sensitive logins, electronic prescribing, clinical workflows.
 
-Where your organization already requires a smart card, KeyMaster is one. Where your personal life needs a password manager, passkey store, crypto wallet, TOTP generator, and SSH-key holder, it's also that — on the same device.
+Where your organization already speaks smart card, KeyMaster speaks it too. Where your personal life needs a password manager, **passkey/FIDO2 authenticator**, crypto wallet, TOTP generator, and SSH-key holder, it's also all of those, on the same device.
 
 The vast majority of hardware security tokens do one thing. KeyMaster does the things they each do, plus the things the other categories do, plus the things none of them do — in a single device that's interoperable with the standards each of those markets already speaks.
 
@@ -88,19 +87,20 @@ Every week, you enter your PIN at grocery store terminals with a flimsy plastic 
 
 ## What We're Building
 
-A compact USB-C device (~2" × 3") that draws power from whatever it's plugged into—no battery needed—and intelligently adapts to its environment:
+A compact USB-C device (~2" × 3") that draws power from whatever it's plugged into—**no battery to charge or replace**—and intelligently adapts to its environment. (A supercapacitor keeps its clock running for weeks unpowered, so TOTP works anywhere.)
 
 **Physical Design:**
 
 - 12-key recessed capacitive keypad (silent, pattern-based unlock, usable by touch under a table)
 - E-paper display (readable in sunlight, no light leakage, persists when unplugged)
-- Two USB-C ports (either can be upstream; one for backups/flash drives)
+- Stainless-steel shell, built to take abuse and resist intrusion
+- Two fully dual-role USB-C ports (either can be upstream or downstream; power passes through to your phone)
 - MicroSD slot for bulk storage
 
 **Adaptive Security Modes:**
 
-- **Untrusted host:** CCID smart card + HID keyboard only. Auto-type credentials without exposing the vault.
-- **Trusted host:** Mount the vault filesystem directly. KeePassXC integration.
+- **Untrusted host:** CCID smart card, HID keyboard, and FIDO2 only. Auto-type credentials and log in with passkeys without exposing the vault.
+- **Trusted host:** Mount the vault as a filesystem (host-side helper), with KeePass-family (`.kdbx`) compatibility.
 - **Smart-card reader:** Low-power mode via adapter for legacy systems.
 
 **Storage Options:**
@@ -108,7 +108,7 @@ A compact USB-C device (~2" × 3") that draws power from whatever it's plugged i
 - Secure vault: 128-512 MB (enough for 10,000+ entries with attachments)
 - OS and tools: 8-16 GB eMMC
 - User storage: MicroSD up to 1 TB
-- Pro model: M.2 NVMe up to 1 TB
+- Pro model: optional M.2 NVMe bay up to 1 TB
 
 ---
 
@@ -116,7 +116,7 @@ A compact USB-C device (~2" × 3") that draws power from whatever it's plugged i
 
 The single biggest cause of lost credentials is "I meant to back up, but I never got around to it." KeyMaster addresses this at the point of sale: **the default purchase is a pair, not a single device.** Two units together, at a meaningful discount over buying one, so every new user starts with an automatic backup in hand.
 
-The two units sync continuously whenever they can see each other — over the local network when they're both plugged in, over direct USB-to-USB connection when you want to do it manually. The primary lives with you; the backup lives in a safe, a safe-deposit box, a trusted relative's house, or wherever makes sense for your threat model.
+The two units sync whenever they can reach each other. A backup can sit powered and networked, plugged into a home machine, or standalone on your network through a USB-C Ethernet adapter (even inside a safe, over a single PoE cable), and stay current on its own; or you can sync two units directly, USB-to-USB, by hand. A backup syncs while still **locked** (it only ever moves encrypted data), and if it's been offline it catches up the moment you next connect it. The primary lives with you; the backup lives in a safe, a safe-deposit box, a trusted relative's house, or wherever makes sense for your threat model.
 
 Single units remain available — to replace a lost device, to add a third backup, or for users who have their own backup strategy — but new buyers are strongly steered toward the pair. Backup isn't a feature you have to remember to set up; it's something you already have because you already bought it.
 
@@ -129,6 +129,7 @@ This pattern also reinforces a healthy mental model: **KeyMasters are fungible p
 **Identity & Secrets Management:**
 
 - Passwords, usernames, URLs, notes
+- **Passkeys / FIDO2:** phishing-resistant, and (uniquely) backed up and portable across your paired devices
 - SSH and GPG keys
 - TOTP/HOTP seeds
 - Crypto wallet seeds and keys
@@ -137,39 +138,42 @@ This pattern also reinforces a healthy mental model: **KeyMasters are fungible p
 **File Storage & Sync:**
 
 - Encrypted partitions unlocked by the device
+- **Inline encryption of external drives:** plug a drive into KeyMaster; it encrypts/decrypts in transit at line rate
 - Read-only "tools" partition for trusted binaries
 - Bootable rescue image
 - Automatic sync between active and backup units
 
 **Security Features:**
 
-- Per-profile cryptographic isolation
-- Optional secure element for tamper resistance
-- Supercapacitor for safe shutdown and tamper response
-- All crypto on-device; secrets never touch the host
+- Per-profile cryptographic isolation, with deniable hidden profiles
+- Un-extractable device secret; tiered secure-element / tamper protection
+- **Wipes its secrets under attack:** too many wrong PINs, or a physical intrusion, erases the device; your data is safe because it also lives on your backup
+- Supercapacitor for safe shutdown, timekeeping, and tamper response
+- The vault and your keys never touch the host; individual credentials cross only when you deliberately use them (auto-type, signing)
 
 ---
 
 ## Technical Architecture
 
-**Dual-Processor Design:**
+**Dual-Processor Design**:
 
-- **MCU (always on):** Handles keypad, display, USB device functions, crypto. Can run standalone in low-power mode.
-- **Application Processor (high-power):** Runs Linux for FUSE filesystem, sync daemon, composite USB gadget.
+- **Security MCU (always on):** Handles keypad, display, the device secret, PIN entry, and core vault crypto. It runs **standalone**, even from a smart-card reader's power, with the application processor off. Small, auditable, and physically separate from the Linux brain.
+- **Application Processor (high-power, USB3-class, Linux):** FUSE vault presentation, sync daemon, composite USB gadget, and line-rate inline encryption of external media via its hardware crypto engine. Powers up only when needed.
 
 **Storage Tiers:**
 
 - SPI-NOR: Bootloader and recovery
 - SPI-NAND: Encrypted vault store
 - eMMC: Operating system and tools
-- MicroSD/NVMe: User bulk storage
+- MicroSD (and optional Pro NVMe bay): User bulk storage
 
 **USB Composite Device:**
 
-- Ethernet (ECM/NCM/RNDIS)
+- Ethernet (ECM/NCM/RNDIS), link-local only, never a default route (won't hijack host traffic)
 - CCID smart card
 - HID keyboard
-- Mass storage (UASP)
+- FIDO2 / passkey authenticator
+- Encrypted mass storage
 
 See [docs/specs/hardware.md](docs/specs/hardware.md) for the full engineering specification.
 
@@ -216,7 +220,7 @@ See [docs/specs/security.md](docs/specs/security.md) for the full cryptographic 
 - Linux on AP
 - FUSE filesystem
 - Sync daemon
-- KeePassXC integration
+- KeePass-family (`.kdbx`) compatibility
 
 **Phase 3: Production**
 
@@ -244,8 +248,8 @@ See [docs/specs/security.md](docs/specs/security.md) for the full cryptographic 
 
 **Ecosystem benefits:**
 
-- Interoperability with existing tools (KeePassXC, GPG, SSH)
-- Standard protocols (CCID, FIDO, USB mass storage)
+- Interoperability with existing tools (the KeePass family, GPG, SSH); by speaking `.kdbx` we piggyback on their mature browser extensions and mobile apps instead of rebuilding them
+- Standard protocols (CCID, FIDO2, USB mass storage)
 - Contributions welcome
 
 ---

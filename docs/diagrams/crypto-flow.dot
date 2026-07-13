@@ -14,7 +14,7 @@ digraph CryptoFlow {
 
   subgraph cluster_drs {
     label="Device Hardware"; style=rounded; color="#aabbee";
-    DRS [label="DRS\n(MCU unique + mfg salt)\n(no SE in v1)"];
+    DRS [label="DRS (Device Root Secret)\nun-extractable: secure element (Pro)\nor MCU hardware-secret key (base)"];
   }
 
   HKDF [label="HKDF"];
@@ -34,13 +34,15 @@ digraph CryptoFlow {
   subgraph cluster_entry {
     label="Per Entry j"; style=rounded; color="#ddbbbb";
     DEK [label="DEK_j (random)"];
-    AEAD [label="AEAD\n(XChaCha20-Poly1305 or AES-GCM)"];
+    AEAD [label="AEAD\n(ChaCha20-Poly1305 or AES-GCM)"];
     Payload [label="Ciphertext payload_j\n(on storage)", style=dashed];
-    
+
     DEK -> AEAD -> Payload;
 
-    Recipients [label="Recipients on entry:\n{profile=A, Wrap(MVK_A, DEK_j)}\n{profile=B, Wrap(MVK_B, DEK_j)}", shape=note];
+    Recipients [label="Anonymous recipient bag (no profile IDs):\nseal(DEK_j → pubkey_self)\nseal(DEK_j → pubkey_contact)\n+ random decoys — trial-decrypt to find yours", shape=note];
   }
 
-  MVK -> Recipients [label="unwrap matching recipient\n→ DEK_j (RAM)"];
+  ProfKey [label="Profile keypair\n(X25519 priv, in profile root)", shape=box];
+  MVK -> ProfKey [label="profile root holds\nthe private key"];
+  ProfKey -> Recipients [label="trial-decrypt bag\n→ DEK_j (RAM)"];
 }

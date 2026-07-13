@@ -105,7 +105,7 @@ KeyMaster uses standard protocols:
 - USB Mass Storage for file access
 - USB Ethernet for network features
 
-No drivers needed on any modern OS. Works on Windows, Mac, Linux, Android, iOS (with adapter). Works on locked-down corporate machines where only smart cards are allowed.
+No drivers needed on any modern OS. Works on Windows, Mac, Linux, Android, and iPhone/iPad (all USB-C as of recent models). Works on locked-down corporate machines where only smart cards are allowed.
 
 **6. Backup Is the Default, Not an Afterthought**
 
@@ -152,15 +152,16 @@ When unlocked on a trusted host, KeyMaster presents a FUSE filesystem:
     desktop-123/.host.xml
 ```
 
-Groups are directories. Entries are canonical in `.entries/`. Everything is XML for KeePassXC compatibility. The device handles all encryption—plaintext never touches the host disk.
+Groups are directories; entries are canonical in `.entries/`. The device handles all encryption—plaintext never touches the host disk, and the on-device store is opaque (see the security spec's "object-soup" format). Where a user wants to work in an existing password manager, KeyMaster can export to the standard KeePass `.kdbx` format — compatible with the whole KeePass family (KeePassXC on the desktop, KeePassDX / KeePassium and others on mobile). Which managers to integrate with is an open, not-yet-decided question; `.kdbx` is simply a widely-supported interchange target.
 
 ### Backup & Sync
 
-Clone units stay in sync automatically:
-- Connect your active KeyMaster to your desktop
-- Your backup KeyMaster, plugged into the same network (via USB-Ethernet or LAN), syncs in the background
+Clone units stay in sync whenever they can reach each other:
+- Connect two KeyMasters directly, USB-to-USB, for a manual sync
+- Or leave a backup powered and on your network, plugged into a machine running the helper, or standalone through a USB-C Ethernet adapter (even inside a safe, over a single PoE cable)
+- The backup replicates while still **locked**, moving only encrypted data, so it never needs a PIN entered in the safe
 - Content-addressed, deduplicated, encrypted replication
-- Works even when the active device isn't plugged in—backup just waits
+- An offline backup simply catches up the moment it's next connected
 
 ---
 
@@ -224,9 +225,9 @@ KeyMaster v1 is a foundation. Future versions could add:
 
 One feature we're exploring: a "dead man's switch" that releases specific secrets if you fail to check in within a configured window.
 
-**The scenario:** You're a journalist pursuing a dangerous story. You hide a backup KeyMaster somewhere with network access—a computer lab, a friend's house, a random ethernet port. You configure it: "If I don't unlock my primary device for 7 days, release my story notes to these email addresses. Release my Facebook password to my sister."
+**The scenario:** You're a journalist pursuing a dangerous story. You hide a backup KeyMaster somewhere it can stay powered and reach the network—a friend's house, an office, a closet with an outlet and an ethernet drop (a USB-C Ethernet adapter, or a single PoE cable, makes it a self-contained network node). You configure it: "If I don't unlock my primary device for 7 days, release my story notes to these email addresses. Release my Facebook password to my sister."
 
-**How it could work:** The hidden backup monitors check-ins from your primary device (via the normal sync protocol). If the deadline passes with no check-in, it releases the designated data—perhaps by emailing encryption keys, posting to a dead drop, or simply unlocking for a designated recipient.
+**How it could work:** Because the application processor is a full little Linux computer, a powered-and-networked backup runs on its own, keeping its own network time and monitoring check-ins from your primary device via the normal sync protocol. If the deadline passes with no check-in, it releases the designated data—perhaps by emailing encryption keys, posting to a dead drop, or simply unlocking for a designated recipient.
 
 **The honest limitations:** This is security through secrecy of location, not cryptographic strength. If an adversary finds the hidden device, they can isolate it from the network (preventing release) or wait and intercept the data. It's also possible to coerce someone into checking in. But for the threat model where the adversary doesn't know about your backup—and that's often the realistic scenario—it provides a meaningful safety net.
 

@@ -11,10 +11,11 @@ This guide describes how KeyMaster works in everyday scenarios. The device is st
 3. [Profiles: Separation, Travel, and Duress](#profiles-separation-travel-and-duress)
 4. [Backup and Recovery](#backup-and-recovery)
 5. [SSH and GPG Keys](#ssh-and-gpg-keys)
-6. [Sharing Credentials](#sharing-credentials)
-7. [Host Policies](#host-policies)
-8. [Accessories](#accessories)
-9. [Troubleshooting](#troubleshooting)
+6. [Passkeys & Two-Factor](#passkeys--two-factor)
+7. [Sharing Credentials](#sharing-credentials)
+8. [Host Policies](#host-policies)
+9. [Accessories](#accessories)
+10. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -28,7 +29,7 @@ KeyMaster is designed to be used as a pair: one primary device you carry, one ba
 
 1. **Plug it in** to any USB-C port. The e-paper display shows "Welcome to KeyMaster."
 
-2. **Create your primary profile.** The device prompts you to set a PIN or pattern. Choose something memorable but not easily guessed—this will be your main unlock code.
+2. **Create your primary profile.** The device prompts you to set a PIN or pattern. Choose something memorable but not easily guessed. This will be your main unlock code.
 
 3. **The device generates your vault.** Encryption keys are created automatically. This takes a few seconds while the display shows "Initializing vault..."
 
@@ -36,9 +37,9 @@ KeyMaster is designed to be used as a pair: one primary device you carry, one ba
 
 4. **Plug in your second KeyMaster.** It also shows "Welcome to KeyMaster."
 
-5. **Pair it with your primary.** On your primary device, select "Pair backup device." Both devices exchange keys and establish a sync relationship. Your backup gets its own PIN—it doesn't have to match.
+5. **Pair it with your primary.** Plug the two KeyMasters into each other with a USB-C cable and select "Pair backup device" on your primary. They exchange keys directly over that connection, with no camera or app needed. Both devices show a short confirmation code; check that they match and confirm on each keypad. Your backup gets its own PIN, which doesn't have to match.
 
-6. **Store the backup somewhere safe.** A home safe, a trusted friend's house, a safe deposit box. Whenever both devices are on the same network, they sync automatically. Your backup stays current without you thinking about it.
+6. **Store the backup somewhere safe.** A home safe, a trusted friend's house, a safe deposit box. Your backup stays current by syncing whenever it's powered and connected. See [Backup and Recovery](#backup-and-recovery) for the ways to keep it in sync, including leaving it plugged in at home so it updates on its own.
 
 **Why this matters:** Your KeyMaster holds your entire digital identity. If you lose it without a backup, you lose access to everything. The backup isn't an afterthought—it's half of the system.
 
@@ -62,7 +63,7 @@ Title: GitHub
 URL: https://github.com/login
 Username: myusername
 Password: [enter or generate]
-TOTP secret (optional): [scan QR or enter]
+TOTP secret (optional): [paste secret, or scan the site's QR with your phone]
 Group: Dev
 Entry saved.
 ```
@@ -109,6 +110,8 @@ For sites with two-factor authentication:
 
 Since the TOTP seed lives on your KeyMaster (not your phone), you have 2FA even when your phone is dead or lost.
 
+**How the device keeps time:** Time-based codes need an accurate clock, and KeyMaster has no battery, so it keeps time with a small energy reserve (a supercapacitor) that holds the clock through everyday gaps between uses, for weeks at a stretch. Whenever it's connected to a computer or the network, it quietly refreshes its clock from the most trustworthy source available. If a KeyMaster has been sitting unused for a very long time and its clock has drifted, it will ask you to confirm the current time once (just read it off your phone or watch), and then it's good again.
+
 ### Mounting the Vault (Trusted Computers)
 
 On computers you trust, you can mount the vault as a virtual drive:
@@ -131,7 +134,7 @@ Now you can browse your credentials like files:
     Netflix.xml
 ```
 
-KeePassXC can open these files directly. Changes save back to your KeyMaster automatically.
+These entries export cleanly to the KeePass `.kdbx` format, so you can open a copy of your vault in a KeePass-family app if you prefer its interface: KeePassXC on the desktop, or KeePassDX / KeePassium and others on your phone. Changes made through the mounted vault save back to your KeyMaster automatically, encrypted on the device.
 
 To unmount:
 ```
@@ -153,7 +156,7 @@ Each profile has:
 - Its own set of visible groups and entries
 - Its own encryption keys (cryptographically isolated)
 
-**The key security property:** There is no way to prove that other profiles exist. The encrypted blobs are identical in structure. The device doesn't store a profile count. Someone examining your device cannot distinguish "no more profiles" from "wrong PIN."
+**The key security property:** There is no way to prove that other profiles exist. You can create as many as you like, and the device never records how many there are: every profile's data is stored as the same kind of anonymous encrypted block, mixed together with random filler. Someone examining your device cannot distinguish "no more profiles" from "wrong PIN," and cannot count them.
 
 ### Setting Up Additional Profiles
 
@@ -168,7 +171,7 @@ Each profile has:
 
 ### When to Use Different Profiles
 
-**Travel:** Before a trip, create a travel profile with only the credentials you'll need—airline, hotel, maybe social media. At border crossings, unlock with your travel PIN. Officials see a functional password manager. Your banking, crypto, and work credentials don't exist as far as they can tell.
+**Travel:** Before a trip, create a travel profile with only the credentials you'll need: airline, hotel, maybe social media. At border crossings, unlock with your travel PIN. Officials see a functional password manager. Your banking, crypto, and work credentials don't exist as far as they can tell.
 
 **Duress:** If someone coerces you to unlock your device, enter your duress PIN. They see a working vault with plausible content. Your real data remains encrypted and hidden. They cannot prove anything else exists.
 
@@ -195,13 +198,19 @@ Your KeyMaster holds your entire digital identity. Without a backup, losing the 
 
 **Option 1: Additional KeyMaster devices (recommended)**
 
-You can have as many KeyMasters as you want, and they all stay in sync automatically:
+You can have as many KeyMasters as you want, and they keep each other in sync whenever they can reach one another:
 
 - **Two devices** (minimum): One you carry, one in a home safe
 - **Three devices**: Add one at a trusted friend's house or safe deposit box
 - **More**: As many as you need for your peace of mind
 
-Whenever any two devices are on the same network, they sync. By default this works over local networks (USB-Ethernet, WiFi, LAN). If you configure it, devices can sync over the internet too—useful if your backup lives across the country.
+A backup only syncs while it's **powered and connected**, since it has no battery and no wireless radio, so it isn't "always on" in a drawer. There are three easy ways to connect it, and you pick whichever fits:
+
+- **Plug the two devices together.** Connect your primary and backup with a USB-C cable and they sync directly. Simplest, no network involved.
+- **Leave the backup plugged into a home computer.** With the small KeyMaster helper app running on that computer, the backup stays reachable on your network and syncs in the background whenever your primary is connected, including over the internet, if you set that up, so a backup across the country stays current.
+- **Give the backup its own network connection.** With an inexpensive USB-C–to–Ethernet adapter (and power), a backup can sit on your network by itself, no computer required. This is the setup for a backup that lives in a safe: run power and a network cable in (or a single Power-over-Ethernet cable), and it quietly keeps itself current.
+
+However you connect it, an offline backup simply catches up the moment it's next plugged in. You never have to remember to "make a backup," because it's already made.
 
 **Option 2: Encrypted file backup**
 
@@ -224,15 +233,14 @@ This is a snapshot, not a live sync. Good for archival, but a backup KeyMaster i
 
 ### How Sync Works
 
-When multiple KeyMasters are on the same network:
+When two of your KeyMasters can reach each other (plugged together, or both on the network via the helper or an Ethernet adapter):
 
-1. Connect your primary to a computer
-2. Your backup (on the same network) detects it via mDNS
-3. They compare vault hashes
-4. Missing entries sync in both directions
-5. Status LED shows sync activity
+1. They discover each other and open a mutually authenticated, encrypted connection, and each device proves it's really one of yours.
+2. They compare what they hold without revealing it.
+3. Missing changes copy in both directions, always as encrypted data.
+4. The status LED shows sync activity.
 
-No cloud required. No internet required. Just two KeyMasters on the same local network.
+No cloud service sits in the middle, and by default nothing leaves your local network. A backup can even sync while it stays **locked**, and never needs to be unlocked to receive updates, which is what lets one live safely in a sealed safe.
 
 ### What Syncs
 
@@ -305,34 +313,64 @@ Your KeyMaster emulates an OpenPGP smart card via USB CCID:
 
 ---
 
+## Passkeys & Two-Factor
+
+### Passkeys (FIDO2)
+
+KeyMaster is a full passkey device—the same kind of "sign in without a password" credential that banks, Google, Microsoft, and a growing list of sites now support. To the website, it looks like any other security key.
+
+**What makes passkeys different from passwords:** a passkey isn't a secret you hand over. It's a private key that never leaves your KeyMaster. When you sign in, the website sends a challenge, your KeyMaster signs it on-device (you confirm with a touch), and only the signature goes back. Nothing reusable is ever transmitted, and your KeyMaster refuses to sign for a look-alike phishing site—so passkeys can't be phished or replayed.
+
+**Using a passkey:**
+
+1. On a site's "sign in with a passkey" or "add a security key" prompt, plug in your KeyMaster.
+2. The display shows the site name and asks you to confirm.
+3. Touch to approve. You're in.
+
+Because this runs on the always-on secure core, it works even on an untrusted, locked-down computer: the machine only ever sees a signature, never your vault.
+
+**The KeyMaster difference: your passkeys are backed up.** On a phone or a typical security key, a passkey is trapped on that one device; lose it and you can be locked out. On KeyMaster, each passkey is stored in your vault like any other entry, so it syncs to your backup and rides along to any of your paired devices. Your passkeys are as recoverable as the rest of your credentials.
+
+### Two-Factor Codes (TOTP)
+
+For sites that use six-digit authenticator codes, KeyMaster stores the TOTP seeds and shows or auto-types the current code; see [Copying TOTP Codes](#copying-totp-codes) under Daily Use. Keeping these on your KeyMaster means you still have your second factor even if your phone is lost or dead.
+
+---
+
 ## Sharing Credentials
+
+### How Sharing Works
+
+Sharing on KeyMaster is built on each profile having its own key pair, like a personal padlock and matching key. To share an entry with someone, you lock a copy of it with **their** padlock; only they can open it. You never expose your vault, and there's no shared account or cloud in the middle.
+
+For this to work, you first exchange padlocks, a one-time **pairing** with each person you'll share with. You keep their public "padlock" privately in your own vault as a contact; nothing about who you can share with is ever published anywhere.
+
+**Pairing with someone (one-time):**
+
+- **They have a KeyMaster:** plug the two devices together with a USB-C cable, or connect over your network. Both displays show a short confirmation code; check they match and confirm on each keypad. Done.
+- **Reference:** the same private key exchange underpins backup pairing; see [First-Time Setup](#first-time-setup).
 
 ### Sharing with Family
 
-Create a shared group that family members can access:
+Once you've paired:
 
-1. Primary device: Create group "Family Shared"
-2. Add entries: Netflix, WiFi password, streaming services
-3. Set group permissions: Allow profiles "personal" and "spouse"
+1. Create a shared group, e.g. "Family Shared."
+2. Add entries: Netflix, WiFi password, streaming services.
+3. Add your spouse (a paired contact) as a recipient on the group.
 
-On your spouse's KeyMaster:
-1. Pair devices (one-time setup)
-2. Sync
-3. Spouse's profile now sees the "Family Shared" group
+Those entries now sync to your spouse's KeyMaster, sealed so only their profile can open them. Each person has their own PIN. Neither can see the other's private entries—only the ones explicitly shared.
 
-Each person has their own PIN. Neither can see the other's private entries.
+### Sending a Credential
 
-### Temporary Sharing
+To hand a single credential to a paired contact:
 
-Need to share a password once?
+1. Find the entry and choose "Share."
+2. Pick the contact.
+3. Confirm on the keypad.
 
-1. Find the entry
-2. Select "Generate share link"
-3. Display shows QR code valid for 10 minutes
-4. Other person scans with KeyMaster app
-5. They receive the credential (one-time)
+KeyMaster seals that entry to the recipient's key and delivers it whenever their device is next reachable, over your sync network or, because it's sealed and unreadable in transit, even via an ordinary relay. The two of you don't have to be online at the same moment. No cloud account, no plaintext ever exposed.
 
-No cloud. No email. Direct device-to-device via QR.
+For a quick one-time handoff to someone **without** a KeyMaster, the device can display a short-lived QR code that their phone's authenticator or the KeyMaster phone app reads. (KeyMaster shows QR codes but doesn't have a camera to read them, so device-to-device sharing uses the pairing and send flow above rather than scanning.)
 
 ### Team Workspaces
 
@@ -355,31 +393,32 @@ Your KeyMaster remembers computers you've used it with and can apply different r
 - **Work laptop:** Limited groups, no mounting, auto-type only
 - **Unknown/untrusted:** CCID and HID only, no storage access
 
-### Configuring Host Policies
+### Safe by default
 
-When you plug into a new computer:
+A plain USB connection doesn't tell KeyMaster anything trustworthy about the computer it's plugged into, so KeyMaster's default on **any** machine it can't positively recognize is its most cautious mode: smart-card, keyboard auto-type, and passkey only, with no storage exposed. A borrowed laptop or public kiosk gets exactly this, automatically, with no setup.
 
-1. Display shows: "New host detected: [hostname]"
-2. You choose trust level:
-   - **Full trust:** All functions
-   - **Limited:** No vault mounting
-   - **Minimal:** Auto-type only
-   - **Deny:** No access
+### Recognizing your own computers
 
-The device remembers this host by its fingerprint.
+A computer becomes "known" when it runs the small KeyMaster helper app and you've authorized it. The helper identifies the machine to your device, so on your own computers KeyMaster can safely relax to the level you chose:
 
-### Automatic Mode Selection
+1. The first time you run the helper on a computer, your device asks you to authorize it and pick a trust level:
+   - **Full trust:** All functions, including mounting the vault
+   - **Limited:** Credentials and web management, no vault mount
+   - **Minimal:** Auto-type and smart-card only
+   - **Deny:** Nothing
 
-Based on host trust level, your KeyMaster automatically:
+2. Your device remembers that computer and applies the same policy next time.
 
-| Host Trust | USB Functions | Vault Access |
+### What each level allows
+
+| Host trust | USB functions | Vault access |
 |------------|---------------|--------------|
-| Full | All | Mount filesystem |
-| Limited | CCID + HID + Ethernet | Web UI only |
-| Minimal | CCID + HID only | None |
-| Unknown | CCID + HID only | None (prompt to register) |
+| Full (authorized) | All | Mount filesystem |
+| Limited (authorized) | Smart card + keyboard + network | Web management only |
+| Minimal (authorized) | Smart card + keyboard + passkey | None |
+| Unknown (default) | Smart card + keyboard + passkey | None |
 
-You never have to think about it—plug in and the device adapts.
+You never have to think about it on the road: an unrecognized machine only ever gets the safe default, and your own machines relax only because you told them to.
 
 ---
 
@@ -404,11 +443,11 @@ A dedicated smart card adapter is planned for future release. This is essentiall
 - **Legacy systems:** ATMs, government kiosks, and older authentication systems that only support smart cards.
 - **Power independence:** The smart card reader provides power, so KeyMaster works even on systems without available USB ports.
 
-The adapter is passive—it simply bridges the USB interface to smart card contacts. All cryptographic operations still happen on your KeyMaster, with confirmation on the e-paper display and PIN entry on the recessed keypad.
+The adapter is a simple bridge: it converts between the USB interface and the smart card's contacts and carries no secrets of its own. All cryptographic operations still happen on your KeyMaster, with confirmation on the e-paper display and PIN entry on the recessed keypad.
 
 ### Cable Management Accessories (roadmap)
 
-If you're using KeyMaster daily—unlocking your phone, authenticating at coffee shop Wi-Fi, signing into shared computers—you'll want a "quick-draw" solution. Fumbling with a loose cable every time defeats the purpose of having credentials at your fingertips.
+If you're using KeyMaster daily (unlocking your phone, authenticating at coffee shop Wi-Fi, signing into shared computers), you'll want a "quick-draw" solution. Fumbling with a loose cable every time defeats the purpose of having credentials at your fingertips.
 
 **Considerations for everyday carry:**
 
@@ -434,15 +473,17 @@ We don't manufacture cables, but we're evaluating partnerships with accessory ma
 ### "Device not recognized"
 
 1. Try a different USB port (directly on computer, not through a hub)
-2. Check the display—is it showing "LOCKED" or an error?
+2. Check the display: is it showing "LOCKED" or an error?
 3. Try a different USB-C cable (some cables are charge-only)
 
 ### "Wrong PIN" on a correct PIN
 
-1. Make sure you're entering the right profile's PIN
-2. Check if Caps Lock affected a previous entry
-3. Wait for any rate-limiting delay to expire
-4. Try pattern mode if you set one up
+1. Make sure you're entering the right profile's PIN (each profile has its own)
+2. Enter it as a deliberate sequence of touches, since rushing can drop or double a key
+3. Wait for any rate-limiting delay to expire before trying again
+4. If you unlock by pattern rather than digits, trace it the same way you set it
+
+**Careful here:** repeated wrong attempts count toward the device's self-wipe limit. If you're not sure of the PIN, stop and grab your backup rather than burning guesses. See [Forgotten PIN](#forgotten-pin).
 
 ### "Vault corrupted" warning
 
@@ -453,15 +494,21 @@ We don't manufacture cables, but we're evaluating partnerships with accessory ma
 
 ### Forgotten PIN
 
-If you've forgotten your PIN and have no backup:
-1. After too many wrong attempts, the device locks permanently
-2. A factory reset erases the vault (this is by design)
-3. This is why backups are critical
+KeyMaster is deliberately built to protect your secrets against someone who has the device but not the PIN, so after too many wrong guesses it **wipes itself**, destroying the keys rather than letting anyone keep guessing. There's no backdoor, by design.
 
-If you have a backup KeyMaster or recovery kit:
-1. Factory reset the locked device
-2. Restore from backup
-3. Set a new PIN
+That sounds drastic, but it's safe **because your data lives in more than one place.** A wiped or lost device is an inconvenience, not a catastrophe:
+
+1. Take out your backup KeyMaster—it has everything, current as of its last sync.
+2. Order a replacement and pair it as your new backup.
+3. Carry on.
+
+**If you set up recovery shares** (Shamir social recovery), you can rebuild your vault onto a fresh device even if every KeyMaster is gone, by gathering enough of your shares from the trusted people or places you left them with. See the [Backup and Recovery](#backup-and-recovery) section.
+
+**If you have neither a backup nor recovery shares,** a forgotten PIN means the vault is unrecoverable. This is why KeyMaster ships as a pair and why setting up a backup during first-time setup isn't optional, it's half the system.
+
+### "Tamper detected"
+
+KeyMaster is designed to destroy its secrets if someone tries to physically break into it. If your device reports a tamper event after a hard knock or extreme conditions rather than an actual break-in, treat it like a wiped device: switch to your backup and replace the unit. Your data is safe on the backup; the device that tripped is just being cautious on your behalf.
 
 ### Device won't boot
 
@@ -472,10 +519,11 @@ If you have a backup KeyMaster or recovery kit:
 
 ### Sync not working
 
-1. Check both devices are on the same network
-2. Verify both are unlocked with profiles that can see the shared content
-3. Check firewall isn't blocking mDNS (port 5353) or sync port (TBD)
-4. Try manual sync: `km sync --target=192.168.1.x`
+1. Confirm the backup is actually powered and connected: plugged into the other device, into a computer running the helper, or onto the network via its Ethernet adapter
+2. If syncing over the network, make sure the KeyMaster helper is running on the computer the backup is attached to
+3. Check a firewall isn't blocking local discovery (mDNS, port 5353) or the sync port
+4. Try connecting the two devices directly with a USB-C cable, the simplest path, no network involved
+5. Try a manual sync: `km sync --target=192.168.1.x`
 
 ---
 
@@ -483,12 +531,13 @@ If you have a backup KeyMaster or recovery kit:
 
 ### Keypad Navigation
 
-| Key | Function |
+During **PIN / pattern entry**, all 12 keys are input symbols, so your unlock code can use any of them, in any length. The roles below apply while **navigating menus**, not while entering your code (so your PIN is never limited to a subset of keys).
+
+| Key | Function (in menus) |
 |-----|----------|
-| 1-9 | PIN entry / menu selection |
+| 0-9 | Menu selection / digit entry |
 | * | Back / Cancel |
-| 0 | Confirm / Enter |
-| # | Options / Menu |
+| # | Confirm / Options (submit a completed PIN) |
 
 ### Display Icons
 
@@ -515,6 +564,6 @@ If you have a backup KeyMaster or recovery kit:
 
 ## Getting Help
 
-**This is a conceptual guide for a device still in development.** If you're interested in contributing to KeyMaster—hardware design, firmware, host software, or documentation—see the main README for how to get involved.
+**This is a conceptual guide for a device still in development.** If you're interested in contributing to KeyMaster (hardware design, firmware, host software, or documentation), see the main README for how to get involved.
 
 For questions about the design or feature requests, open an issue on the GitHub repository.

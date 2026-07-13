@@ -1,6 +1,6 @@
 # KeyMaster – Security Specification
 
-**Version:** 0.1 (Draft)
+**Version:** 0.2 (Draft)
 **Status:** Design-in-progress
 
 This document specifies the cryptographic design and threat model for KeyMaster. It is intended for security review and as a reference for implementation.
@@ -111,7 +111,8 @@ This document specifies the cryptographic design and threat model for KeyMaster.
 │      ▼                          │                                    │
 │  ┌────────────────────┐         │                                    │
 │  │ Argon2id(PIN,salt) │         │                                    │
-│  │  m=64MB, t=3, p=4  │         │                                    │
+│  │  params tuned to    │         │  (one device-wide salt;            │
+│  │  the security MCU   │         │   see Deniable Encryption)         │
 │  └─────────┬──────────┘         │                                    │
 │            │                    │                                    │
 │            ▼                    ▼                                    │
@@ -194,7 +195,7 @@ This document specifies the cryptographic design and threat model for KeyMaster.
 
 | Purpose | Algorithm | Parameters |
 |---------|-----------|------------|
-| PIN stretching | Argon2id | m=65536 KB, t=3, p=4 |
+| PIN stretching | Argon2id (family) | **Tuned to the chosen security MCU** (~1s unlock within on-chip RAM), not fixed. Memory-hardness is a backstop here, not the primary defense (see PIN Protection). |
 | Key derivation | HKDF-SHA256 | Per RFC 5869 |
 | Key wrapping | AES-256-KW | Per RFC 3394 |
 | Data encryption | AES-256-GCM | 96-bit nonce, 128-bit tag |
@@ -233,7 +234,10 @@ This document specifies the cryptographic design and threat model for KeyMaster.
 Nonce Strategy:
 - 96-bit random nonces for AES-GCM
 - Never reuse nonce with same key
-- Entry version number included in AAD (prevents rollback)
+- Entry version in the AAD binds the ciphertext to its version, but does NOT by
+  itself prevent rollback: an attacker can replay a whole older (ciphertext, AAD)
+  pair. Rollback resistance requires a monotonic counter (SE) or an authenticated,
+  monotonic index root (see Attack Mitigations).
 
 Nonce Generation:
 - Primary: SE hardware RNG
@@ -241,9 +245,11 @@ Nonce Generation:
 - Health checks before each use
 
 Collision Analysis:
-- 96-bit nonce, random selection
-- 2^32 encryptions before 50% collision probability
-- Acceptable for vault use case (<<2^32 operations)
+- 96-bit random nonce: 50% collision probability at ~2^48 encryptions (birthday
+  bound), and negligible (~2^-33) at 2^32. A vault performs far fewer than 2^32
+  encryptions under one key, so random 96-bit nonces are safe here.
+- Where practical, prefer a deterministic per-key counter nonce to remove collision
+  risk entirely.
 ```
 
 ---
@@ -291,18 +297,25 @@ DRS─│ HKDF │                 DRS─│ HKDF │                 DRS─│ 
 | **Duress** | Coerced unlock scenario | Decoy groups with harmless data |
 | **Work** | Employer-accessible data | Work-related groups only |
 
-### Deniable Encryption
+### Deniable Encryption: the "object-soup" model
+
+Deniability is the headline security property: an attacker who seizes the device — even one who compels a duress unlock and then images the flash — **must not be able to prove that other profiles exist, or count them.** This requires that *nothing per-profile be stored in a countable form.* KeyMaster achieves this by storing everything as uniform, opaque objects (see the software spec's on-disk format):
 
 **How it works:**
-- All profile metadata has identical structure
-- Wrapped MVK blobs are same size (256 bits + 64-bit tag)
-- No profile count stored; device tries all known salts
-- Failed decryption indistinguishable from "no more profiles"
+- **Uniform objects, no plaintext type.** Every stored object — profile root, entry, group, attachment, passkey, or decoy — is a fixed-quantized encrypted blob. Nothing labels an object as a "profile." An object's kind is visible only after decryption, which requires the PIN.
+- **One device-wide salt**, not a per-profile salt list. (Counting salts would count profiles.) Anti-precomputation comes from the un-extractable device secret.
+- **PIN-derived lookup.** A profile's root is *located and keyed by the PIN itself.* No PIN ⇒ no way to find or recognize it. A failed lookup is indistinguishable from "no more profiles." No profile count is stored anywhere.
+- **Anonymous recipient bags.** Shared entries carry a fixed-size, decoy-padded bag of wrapped keys with **no profile identifiers**, so you trial-decrypt to find yours (see Entry Encryption).
+- **Random-fill.** The store is random-initialized so occupancy always looks full.
+- Result: **effectively arbitrary profiles**, bounded only by storage, with the count written down nowhere.
 
-**Limitations:**
-- Attacker with physical access can observe number of unlock attempts
-- Statistical analysis of flash wear could reveal profile count (mitigated by wear leveling)
-- Duress profile should be used occasionally to maintain plausibility
+**The unavoidable law (stated honestly):** you can have {arbitrary count, perfectly hidden count, bounded storage} — pick two. Storage is physical, so "bounded" is non-negotiable; perfect hiding of an *unbounded* count is therefore impossible. This is the same wall TrueCrypt/VeraCrypt hidden volumes hit. KeyMaster spends the law well (arbitrary count, hidden count, at the cost of a residual *volume* signal), but does not pretend to escape it.
+
+**Residual limitations (real, not hidden):**
+- **Total volume, not count, is the residual tell.** An attacker cannot count profiles but can see how much data is present. A sparse duress profile on a visibly stuffed device is a soft, non-proof thread. Mitigations: random-fill (always looks full) and a plausibly-substantial duress profile. It shrinks toward nothing but never mathematically reaches zero.
+- **Garbage collection must be conservative.** Unlocked as one profile, the device cannot see another's objects and must never delete objects it cannot account for (the hidden-volume destruction trap).
+- **Duress profiles should be exercised occasionally** so timestamps stay plausible.
+- An attacker with physical access can still observe the *number of unlock attempts* made in their presence.
 
 ---
 
@@ -320,11 +333,11 @@ DRS─│ HKDF │                 DRS─│ HKDF │                 DRS─│ 
 │    modified: 64 bits (timestamp)                                     │
 │    recipient_count: 8 bits                                           │
 │                                                                      │
-│  Recipient Blobs (per-profile):                                      │
+│  Recipient Bag (ANONYMOUS, no profile identifiers):                  │
 │    ┌──────────────────────────────────────────┐                      │
-│    │  profile_id: 128 bits (UUID)             │                      │
-│    │  wrapped_dek: 256 + 64 bits (AES-KW)     │ × N recipients       │
-│    └──────────────────────────────────────────┘                      │
+│    │  sealed_dek: DEK sealed to a recipient    │  fixed-size bag,    │
+│    │             public key (or own profile)   │  padded with decoys │
+│    └──────────────────────────────────────────┘  → trial-decrypt     │
 │                                                                      │
 │  Encrypted Payload:                                                  │
 │    nonce: 96 bits                                                    │
@@ -336,32 +349,22 @@ DRS─│ HKDF │                 DRS─│ HKDF │                 DRS─│ 
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### Multi-Recipient Encryption
+There are **no plaintext profile identifiers** in the recipient bag, which would let a flash-image attacker enumerate profiles (see Deniable Encryption). The bag is a fixed size, padded with random decoys, so it leaks neither *which* nor even *how many* profiles can open an entry. A profile finds its slot by **trial-decryption** (the AEAD tag tells it which sealed blob is its own).
 
-Entries can be accessible from multiple profiles:
+### Multi-Recipient & Cross-Device Sharing
+
+An entry's DEK is **sealed to a recipient's X25519 public key**, including the owner's own profile key. This is what makes sharing work across profiles *and across devices* (the earlier symmetric "wrap to the destination profile's master key" could not, because that key exists only inside the recipient's unlocked profile, possibly on another device).
 
 ```
-Entry: "GitHub Credentials"
-  │
-  ├── Recipient: Profile "personal"
-  │     wrapped_dek = AES-KW(MVK_personal, DEK)
-  │
-  └── Recipient: Profile "work"
-        wrapped_dek = AES-KW(MVK_work, DEK)
+Entry: "GitHub Credentials"   (recipient bag, order-randomized, decoy-padded)
+  ├── seal(DEK → my "personal" profile pubkey)     ← I can open it
+  ├── seal(DEK → my spouse's "family" profile pubkey)  ← shared with a contact
+  └── (decoy) ................................. random, indistinguishable
 ```
 
-**Process to decrypt:**
-1. User unlocks profile (e.g., "personal")
-2. KEK derived, MVK unwrapped
-3. For target entry, find recipient blob matching profile UUID
-4. Unwrap DEK using MVK
-5. Decrypt payload using DEK + nonce
+**To decrypt:** unlock a profile → obtain its private key → trial-decrypt the bag → the slot that opens yields the DEK → decrypt the payload.
 
-**Process to share entry with new profile:**
-1. Decrypt DEK using source profile's MVK
-2. Wrap DEK with destination profile's MVK
-3. Add new recipient blob to entry
-4. Re-encrypt and save
+**To share** (requires unlock: you must hold both the entry and the recipient's public key, which you store *privately* as a contact, and there is no public key directory): seal the DEK to the contact's public key, add it to the bag, deliver the (opaque) sealed blob over any transport. See the software spec's Pairing & Sharing for the pairing ceremony and asynchronous delivery.
 
 ### Field-Level Encryption
 
@@ -387,22 +390,33 @@ The entire entry is encrypted, but password fields are double-encrypted. This en
 
 ## PIN Protection
 
-### Argon2id Parameters
+### The Security Model: Hardware-Enforced Limits, Not Slow Math
 
-```
-Parameters:
-  m (memory): 65536 KB (64 MB)
-  t (iterations): 3
-  p (parallelism): 4
-  hashlen: 32 bytes (256 bits)
-  saltlen: 32 bytes (256 bits)
+KeyMaster's PIN security comes from **hardware**, not from making the key-derivation computationally heavy. This is the model that hardware tokens, secure enclaves, and chip-and-PIN cards use: a short PIN is safe not because the number is strong, but because the hardware permits only a few guesses and the device secret cannot be extracted to guess offline. The defenses, in order of importance:
 
-Rationale:
-  - 64 MB memory resists GPU attacks (GPUs have limited fast memory)
-  - 3 iterations provide good security margin
-  - 4 threads utilize quad-core AP
-  - Runs in ~1 second on target ARM Cortex-A7
-```
+1. **A hard attempt cap, enforced by tamper-resistant hardware.** After a configured number of wrong guesses the device doesn't just lock, it **wipes** (zeroizes the device secret and key material). An attacker gets N tries total, regardless of how fast they work, not N per second. The counter lives where it cannot be reset without destroying the secret.
+2. **An un-extractable device secret (DRS).** Unlock requires both the PIN *and* the device's secret, mixed together, so there is **no offline attack**: an attacker cannot copy the vault to a fast machine, because the machine lacks the secret and cannot read it out of the chip. Quality ladder (see hardware spec): flash < OTP fuses with read-out disabled < a secure element that performs the unlock internally and never emits the secret < (exotic) a PUF with nothing stored to extract.
+3. **Erase-on-attack.** Opening or probing the device triggers supercap-backed zeroization, destroying the secret before it can be reached (see Tamper Protection).
+4. **Physical-only PIN entry.** The capacitive keypad has no programmatic entry path; guesses happen at human, hand-typed speed.
+5. **Backstop stretching only.** The PIN is still run through a memory-hard KDF, but with **MCU-feasible parameters tuned to the chosen part** (target ~1s unlock, memory within the security MCU's on-chip RAM), *not* the 64 MB / quad-core-AP figure earlier drafts assumed (the AP is powered off during unlock, and its heavy memory-hardness was defending against an offline attack that the un-extractable secret already prevents). This is defense-in-depth if a hardware protection fails, not the primary barrier.
+
+**The trade-off:** this turns a *math* problem into a *physical-security* problem. That is better for almost everyone, since physical attacks are costly, need the device in hand, and don't scale to millions of victims. But it rests on the quality of the tamper resistance and secret storage, which is why the Pro tier carries a secure element and tamper mesh, and why **aggressive self-wipe is acceptable only because a KeyMaster's data always lives on at least one paired backup and/or recovery shares** (see Key Recovery). A wiped unit costs the user a replaceable device, not their secrets.
+
+### Relationship to MCU-Only Hardware Tokens
+
+This "hardware-enforced limits, not slow math" model is the approach existing MCU-based tokens already use (e.g. the OnlyKey, which wipes after a fixed number of failed PINs so that "brute forcing" becomes impossible). KeyMaster takes the same approach and strengthens the dimensions a bare-MCU token is weakest on:
+
+| Dimension | Typical MCU-only token | KeyMaster |
+|-----------|------------------------|-----------|
+| Device secret | MCU flash-security only | **Base:** split across HUK + flash + EEPROM (no single readout wins). **Pro:** secure element that never emits the secret |
+| PIN → key | Often a single hash | Memory-hard KDF (Argon2id family) as a backstop over the hard cap |
+| RNG | Sometimes collected/analog entropy (acknowledged marginal) | Required hardware TRNG + DRBG with SP 800-90B health checks |
+| Deniability | Second-profile schemes | Object-soup: arbitrary hidden profiles, count stored nowhere |
+| Tamper | Tamper-*evident* potting | Tamper-*responsive* zeroization + mesh (Pro); designed toward certifiability |
+| Backup | Single encrypted export file | Paired continuous sync + Shamir threshold recovery + file export |
+| Key capacity | Fixed key slots | Keys/passkeys as vault entries, effectively unlimited, synced, backed up |
+
+For a reviewer: this is the *established* hardware-token security model, strengthened on secret storage, entropy, deniability, and recovery, with a certification path planned from the outset, not an untested approach.
 
 ### Rate Limiting
 
@@ -421,16 +435,21 @@ Backoff Schedule (defaults, user-configurable):
   Attempts 10-12: 1 hour delay
   Attempts 13+:   24 hour delay
 
-Lockout (default: 20 attempts, user-configurable):
-  After N failed attempts: Permanent lockout
-  Recovery: Factory reset or social recovery (see Key Recovery section)
+Wipe threshold (default: 20 attempts, user-configurable):
+  After N failed attempts the device WIPES: it zeroizes the device secret and key
+  material, not just locks. The local ciphertext becomes permanently unrecoverable.
+  Recovery is then from a PAIRED DEVICE or social-recovery shares (see Key Recovery),
+  never from this unit, which is the point.
 
 Counter Reset:
   Successful unlock resets counter to 0
-  Counter stored in tamper-resistant memory
+  Counter runs on internal/powered time and lives in tamper-resistant memory
+  (never on host-supplied time, see Time Trust)
 ```
 
-The lockout threshold, backoff schedule, and reset policy are user-configurable during setup and adjustable later (via elevated unlock).  Users with high recall confidence and high-value vaults may set a tighter lockout (10 attempts or fewer); users who routinely mistype and accept marginally higher brute-force risk may set a looser one (30 or more).  The defaults reflect a general-purpose choice.
+The wipe threshold, backoff schedule, and reset policy are user-configurable during setup and adjustable later (via elevated unlock).  Users with high recall confidence and high-value vaults may set a tighter threshold (10 attempts or fewer); users who routinely mistype and accept marginally higher brute-force risk may set a looser one (30 or more).  The defaults reflect a general-purpose choice.
+
+> Because a wipe is irreversible on the affected unit, aggressive thresholds are only sane because **backup is fundamental** to KeyMaster (sold in pairs; see README). Losing or wiping one unit is a "grab the backup, buy a replacement, re-pair" event, not a catastrophe. A griefer who enters wrong PINs to force a wipe destroys a replaceable device, not your data.
 
 ### On Brute-Force Resistance
 
@@ -438,9 +457,9 @@ Traditional brute-force analysis assumes an attacker can issue guesses rapidly, 
 
 **Input is physical, not programmable.** The capacitive keypad has no mechanical switches and no exposed contacts. Automating key entry would require a robotic apparatus that correctly triggers capacitive sensing across 12 keys — a significantly harder engineering problem than driving a USB interface or soldering to a debug pin. For practical purposes, a human attacker enters guesses by hand, at human speeds.
 
-**Attempts are hard-capped.** The rate-limiting schedule permanently locks the device after a user-configured number of failed attempts (default: 20). Recovery then requires factory reset or social recovery (see the Key Recovery section). An attacker gets at most N tries total — not N per second indefinitely.
+**Attempts are hard-capped, and the device wipes.** After a user-configured number of failed attempts (default: 20) the device zeroizes its secret: an attacker gets at most N tries total, not N per second indefinitely, and there is nothing left to attack afterward. Recovery is from a paired backup or social-recovery shares (see the Key Recovery section).
 
-**The math inverts.** A 6-digit PIN has 10⁶ = 1,000,000 possible values. At the default 20-attempt cap, random guesses against a uniformly-chosen 6-digit PIN succeed with probability 20 / 10⁶ = 0.002% — roughly 1 in 50,000. An 8-digit PIN drops that to 1 in 5 million. Users who want tighter protection can lower the cap; users who routinely mistype can raise it, accepting marginally higher brute-force exposure. Either way, the protection is stronger than most online services provide against password guessing, and it's achieved with PINs short enough to remember easily.
+**The math inverts.** A 6-digit PIN has 10⁶ = 1,000,000 possible values. At the default 20-attempt cap, random guesses against a uniformly-chosen 6-digit PIN succeed with probability 20 / 10⁶ = 0.002%, roughly 1 in 50,000. An 8-digit PIN drops that to 1 in 5 million. Users who want tighter protection can lower the cap; users who routinely mistype can raise it, accepting marginally higher brute-force exposure. Either way, the protection is stronger than most online services provide against password guessing, and it's achieved with PINs short enough to remember easily.
 
 **PIN length primarily serves other goals.** Because brute force is not the limiting factor, users can choose PIN length based on other considerations:
 
@@ -480,7 +499,7 @@ PIN in Memory:
 
 ### Tiered Unlock for Elevated Operations
 
-A profile unlock gives the user access to their day-to-day credentials: passwords, TOTP seeds, routine signing keys. For a small number of high-sensitivity items, the user may want an additional authentication step beyond the profile PIN. KeyMaster supports **tiered unlock** — operations or entries flagged as elevated require a second PIN, distinct from the profile PIN, entered after the profile is already unlocked.
+A profile unlock gives the user access to their day-to-day credentials: passwords, TOTP seeds, routine signing keys. For a small number of high-sensitivity items, the user may want an additional authentication step beyond the profile PIN. KeyMaster supports **tiered unlock**: operations or entries flagged as elevated require a second PIN, distinct from the profile PIN, entered after the profile is already unlocked.
 
 **Motivation:**
 
@@ -518,11 +537,22 @@ Because elevated unlock requires both PINs, an attacker who has extracted the pr
 
 **Policy configurability:**
 
-The set of entries and operations requiring elevation is policy-controlled. Default: wallet seeds, signing identities, device-pairing operations, and any entry the user explicitly flags. Users can adjust the policy during setup or later — with elevation itself required to change the policy, preventing an attacker with only the profile PIN from lowering the protection of elevated entries.
+The set of entries and operations requiring elevation is policy-controlled. Default: wallet seeds, signing identities, device-pairing operations, and any entry the user explicitly flags. Users can adjust the policy during setup or later, with elevation itself required to change the policy, preventing an attacker with only the profile PIN from lowering the protection of elevated entries.
 
 **Limits:**
 
 Tiered unlock is defense in depth, not a new root of trust. An attacker with full device compromise at the hardware level is not meaningfully hindered by the second PIN. The mechanism protects against attackers who have obtained the profile PIN but lack the elevation PIN, physical access during an elevated session, or the ability to observe two independent authentications.
+
+---
+
+## Time Trust
+
+KeyMaster keeps time with a supercapacitor-backed RTC and refreshes it opportunistically from whatever a given environment offers (network NTP, the host helper, or — as best-effort — scavenging a host's clock over the point-to-point link; see software spec). Because some of those sources are **untrusted**, the security rule is strict:
+
+- **Untrusted time may drive TOTP display only.** A wrong clock makes TOTP codes fail, which is an availability nuisance, not a compromise.
+- **Security timers must never run on host-supplied time.** The rate-limit backoff and wipe-threshold timing run on the device's internal/powered time only. Otherwise an attacker who sets the host clock forward could skip lockout delays. The hard *count* cap is inherently immune (it counts attempts, not time).
+
+This keeps "TOTP works anywhere" and "batteryless" true without letting a hostile host manipulate the device's defenses.
 
 ---
 
@@ -564,18 +594,31 @@ Security:
 When no SE is present (base model):
 
 ```
-DRS Derivation:
-  1. Read MCU Hardware Unique Key (HUK) from OTP fuses
-  2. DRS = HKDF(HUK, "KeyMaster DRS v1", device_serial)
+DRS Derivation (split-secret, defense in depth):
+  1. The DRS is reconstructed from SHARES held in PHYSICALLY SEPARATE stores, so
+     that reading any one store does not reveal it:
+       - a GENUINE hardware-secret key (HUK) with read-out disabled, NOT the chip's
+         public "unique device ID" (which is not secret; constrains MCU choice, §4)
+       - a random share in locked internal flash (read-out protection enabled)
+       - a random share in EEPROM / a second protected region
+  2. DRS = HKDF( HUK || flash_share || eeprom_share, "KeyMaster DRS v1", device_serial )
+
+  An attacker must successfully extract from every store to reconstruct the DRS,
+  which brings the base tier much closer to the SE tier for little added cost. (This
+  key-splitting technique is used in shipping MCU-only tokens such as the OnlyKey.)
 
 Rate Limiting:
-  - Counter in MCU flash (less tamper-resistant)
-  - Glitch detection to protect counter updates
+  - Counter in MCU flash (less tamper-resistant than an SE)
+  - Glitch detection + redundant checks to protect counter updates
+  - An in-operation integrity counter: skipped/faulted instructions corrupt it and
+    force a restart-to-locked (glitch-injection resistance)
 
 RNG:
-  - MCU TRNG as entropy source
+  - MCU hardware TRNG as entropy source
   - DRBG (HMAC-DRBG) for expansion
-  - Health checks per SP 800-90B
+  - Continuous health checks per SP 800-90B
+  (A real hardware TRNG is required; collected/analog entropy schemes on bare MCUs
+   are widely acknowledged to be marginal; KeyMaster does not rely on them.)
 ```
 
 ---
@@ -722,7 +765,7 @@ Supercap Sizing:
 |--------|------------|
 | **Replay** | Nonces in all encrypted messages, timestamps |
 | **MITM (sync)** | Mutual TLS, certificate pinning |
-| **Rollback** | Version numbers in AAD, monotonic counters |
+| **Rollback** | Monotonic counter (SE) or authenticated index root (version in AAD alone is not sufficient — see Nonce Management) |
 | **Malformed input** | Strict parsing, length limits, fuzzing |
 
 ---
@@ -737,7 +780,7 @@ KeyMaster supports three recovery tiers with different trust and threat-model pr
 
 ### Tier 1: Paired-Device Sync (Default)
 
-KeyMaster is sold in pairs. The two devices sync continuously via direct USB connection, local network, or downstream connection through a host. Every change on one replicates to the other; the backup is never more than a sync cycle stale.
+KeyMaster is sold in pairs. The two devices sync whenever they can reach each other: direct USB, over the local network (a backup can sit on the LAN via a USB-C Ethernet adapter, or plugged into a machine running the helper), or KeyMaster-to-KeyMaster. A backup replicates while **locked** (headless sync moves only ciphertext; see software spec), so it can live powered in a safe or drawer. It is as current as its **last connection**, so if it was offline, it catches up the moment it is next connected.
 
 **Handles:**
 - Primary device lost, stolen, or damaged: the backup becomes the new primary; buy a replacement to pair as the new backup.
@@ -749,7 +792,7 @@ KeyMaster is sold in pairs. The two devices sync continuously via direct USB con
 
 ### Tier 2: Additional Hardware Backup
 
-Users may purchase additional single units as extra backups — held in a safe-deposit box, at a trusted relative's house, at an office safe. These units sync when they can reach each other and hold the last-synced state otherwise.
+Users may purchase additional single units as extra backups, held in a safe-deposit box, at a trusted relative's house, at an office safe. These units sync when they can reach each other and hold the last-synced state otherwise.
 
 **Handles:**
 - Tier-1 cases plus geographic dispersion.
@@ -795,7 +838,7 @@ The two modes can also mix. A user might give paper shares to an elderly relativ
 - **No single point of failure.** Fewer than M shares reveal nothing, even if combined with the ciphertext recovery blob.
 - **No online service needed.** Recovery is cryptographic, not custodial. There is no company to subpoena or compromise.
 - **Social, not technical.** Share-holders need only keep their share safe. They don't run software, maintain infrastructure, or understand the cryptography.
-- **Survives the user.** If the user becomes incapacitated or dies, the threshold of trusted parties can recover the vault — consistent with the bequeathing model (see below).
+- **Survives the user.** If the user becomes incapacitated or dies, the threshold of trusted parties can recover the vault, consistent with the bequeathing model (see below).
 
 **Threat model limitations:**
 
@@ -952,7 +995,7 @@ Not appropriate for: Protection against adversaries who will search exhaustively
 | Zone 1 | Zone 0 | PIN (for verification), commands |
 | Zone 1 | Zone 2 | Encrypted entries, wrapped keys |
 | Zone 2 | Zone 1 | Encrypted data, sync messages |
-| Zone 2 | Zone 3 | Encrypted vault (via USB mass storage) |
+| Zone 2 | Zone 3 | Encrypted data / vault content (via host-side FUSE over the device API) |
 | Zone 3 | Zone 2 | User commands, host identification |
 
 **Never allowed:**
@@ -965,30 +1008,37 @@ Not appropriate for: Protection against adversaries who will search exhaustively
 
 ## Appendix A: Cryptographic Test Vectors
 
-### Argon2id Test Vector
+Canonical test vectors will be published here once the KDF parameters and cipher
+selections are locked to the chosen security MCU (the PIN-stretch parameters are
+tuned to the part, not fixed in advance — see PIN Protection). Each vector will pin a
+known input to its expected output so implementations can self-check against a
+reference. The structures below show the intended inputs; outputs are deliberately
+left blank until the parameters are final.
+
+### PIN-Stretch (Argon2id) Test Vector
 
 ```
 Input:
-  password: "correct horse battery staple"
-  salt: 0x0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20
-  m: 65536, t: 3, p: 4
+  password: (example PIN)
+  salt:     (256-bit device-wide salt)
+  params:   (Argon2id m/t/p, tuned to the chosen MCU — to be fixed)
 
 Output (PK):
-  0x... (to be computed with reference implementation)
+  (to be published once parameters are locked)
 ```
 
 ### AES-256-GCM Test Vector
 
 ```
 Input:
-  key: 0x000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f
-  nonce: 0x000102030405060708090a0b
-  plaintext: "test entry data"
-  aad: entry_uuid || version
+  key:       (256-bit DEK)
+  nonce:     (96-bit)
+  plaintext: (example entry data)
+  aad:       entry_uuid || version || modified
 
 Output:
-  ciphertext: 0x... (to be computed)
-  tag: 0x... (to be computed)
+  ciphertext: (to be published)
+  tag:        (to be published)
 ```
 
 ---
@@ -1023,3 +1073,4 @@ Output:
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 0.1 | 2025-09 | - | Initial draft |
+| 0.2 | 2026-07 | - | Hardware-enforced security model + self-wipe; object-soup deniability (arbitrary hidden profiles); sealed-box (X25519) sharing; time-trust rule; nonce/rollback corrections; Argon2 reframed to MCU-feasible backstop |
