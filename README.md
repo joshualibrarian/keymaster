@@ -115,6 +115,8 @@ We de-risk deliberately:
 
 Hardware budgets are famously optimistic; these figures already carry contingency, and the specifications behind them are detailed enough for an engineering firm to quote against rather than guess.
 
+**What it might sell for.** Early unit economics are rough but worth stating. A small Linux computer plus a security core, an e-paper display, a keypad, and a machined-metal shell carries a premium bill of materials, roughly **\$100–180 per device** to build at low volume. At the usual direct-to-consumer hardware markup (about 2.5–3× cost), and given the sold-in-pairs model, that points to a launch price around a **\$500–900 pair** (~\$300–500 per device). At real production volume, component pricing, a cheaper enclosure process, and amortized tooling could bring that toward a **\$300–500 pair**. This is a premium price point, closer to a mid-range phone than a \$50 token; the market comps say the willingness-to-pay exists in this range (people fund \$800 privacy phones and buy \$280 hardware wallets), but it has to be earned by the integration story, one device that replaces a wallet, a security key, a password manager, and an authenticator, with a backup already in the box. Validating that willingness-to-pay early is a standing priority.
+
 ---
 
 ## Core Capabilities

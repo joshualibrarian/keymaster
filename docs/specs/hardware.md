@@ -524,7 +524,9 @@ Both SKUs share a PCB; Pro populates the secure element, adds the tamper mesh, a
 
 ### Budget Estimate
 
-> **These figures are rough, order-of-magnitude planning placeholders — not quotes.** A secure, dual-processor device with on-device crypto, secure boot, CCID + FIDO2 + OpenPGP card emulation, an e-paper UI, capacitive touch, tamper response, and a Linux AP is a substantial firmware effort; realistic all-in prototype figures for work of this kind commonly run well into six figures. The ranges below are intended to frame *relative* effort and to be replaced by a real partner quote. Treat the firmware line especially as a floor, not a ceiling.
+> **Scope: this table covers the PROTOTYPE phase only** — concept through first working boards and a firmware MVP. It is *not* the cost to reach a shipping product. The full capital to get from here to a certified, manufacturable, shipping v1 (design-for-manufacture iterations, certification, tooling, a first production run, and the team over 24-36 months) is a much larger, separate figure, roughly **\$4-7M**, summarized in the README's *"What It Will Take to Build."* The prototype figures below are one early slice of that.
+
+> **These figures are rough, order-of-magnitude planning placeholders — not quotes.** A secure, dual-processor device with on-device crypto, secure boot, CCID + FIDO2 + OpenPGP card emulation, an e-paper UI, capacitive touch, tamper response, and a Linux AP is a substantial firmware effort; realistic all-in prototype figures for work of this kind commonly run well into six figures. The ranges below frame *relative* effort and are to be replaced by a real partner quote. Treat the firmware line especially as a floor, not a ceiling.
 
 | Component                        | Indicative range |
 | -------------------------------- | ---------------- |
@@ -532,7 +534,7 @@ Both SKUs share a PCB; Pro populates the secure element, adds the tamper mesh, a
 | Schematic + PCB layout           | \$15k - \$40k      |
 | Enclosure design + prototyping (machined metal, thermal path) | \$10k - \$25k |
 | Firmware MVP (security MCU + AP)  | \$60k - \$200k+    |
-| **Total Phase 1 (indicative)**   | **highly team-dependent; obtain a quote** |
+| **Total prototype phase (indicative)** | **highly team-dependent; obtain a quote (this is a slice of the ~\$4-7M full-product figure)** |
 
 *Estimates vary significantly with team experience, certification scope, and security depth.*
 
