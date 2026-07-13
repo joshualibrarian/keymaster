@@ -13,45 +13,16 @@ It is not just a password store. It is a secure interaction point for credential
 
 ## Why This Exists
 
-Our digital lives are a mess of passwords, keys, and secrets scattered across devices and services. The current solutions are fundamentally broken:
+Our passwords, keys, and secrets are scattered across devices and services, and every common way of managing them falls short:
 
-**Browser and platform password managers** (Google, Apple, and the browsers' built-in vaults) are what most people actually use, because they're free and already there. That convenience hides real limits:
+- **Browser and platform managers** (Google, Apple) are what most people use, but your secrets ride on your most-attacked online account, stay locked to one ecosystem, and cover only passwords, never your SSH/GPG keys, wallet seeds, or smart-card logins.
+- **Cloud managers** (1Password, Bitwarden) put your vault on someone else's servers, to be trusted, subpoenaed, or breached, and need a network and a trusted host to use.
+- **Local managers** (KeePass) keep the vault on your machine, but syncing becomes your problem, the host can be compromised, and a borrowed or locked-down computer locks you out.
+- **Hardware tokens** (YubiKey, Ledger, Trezor) each do one slice, authentication or coins or keys, but none holds all of it and none adapts to an untrusted host.
 
-- Your passwords live inside your Google or Apple account, so they are only as safe as that account, and that account is one of the most-attacked targets on the internet
-- They are locked to an ecosystem: Google's work well in Chrome and on Android, Apple's in Safari and on Apple devices, and everything gets awkward the moment you cross between them
-- They handle passwords and passkeys, but not SSH or GPG keys, wallet seeds, TOTP secrets, or smart-card logins
-- On a borrowed or locked-down machine, using them means signing your entire account into a computer you don't trust, if it's allowed at all
-- Lose access to the platform account and you can lose everything at once
+The result is everyday friction: you can't safely log in on a coffee-shop computer, a border agent can compel your whole digital life, work machines block the tools you need, and your backup plan is "hope nothing breaks."
 
-**Cloud password managers** (1Password, LastPass, Bitwarden, etc.) are convenient but have critical gaps:
-
-- Your vault lives on someone else's servers
-- You must trust their cloud, their code, their security practices
-- They can be subpoenaed, hacked, or shut down
-- They require an internet connection and a trusted host
-
-**Local password managers** (the KeePass family, etc.) keep your vault on your own machine, but:
-
-- You must first unlock the host to access your vault—two unlock steps, two attack surfaces
-- The host itself may be compromised (keyloggers, malware, prying eyes)
-- Syncing your vault across devices becomes your problem
-- On a borrowed or locked-down machine, you can't use it at all
-
-**Hardware tokens** solve pieces but create new problems:
-
-- YubiKeys do authentication, not password storage
-- Crypto wallets handle coins, not your SSH keys or login credentials
-- Secure flash drives are just encrypted storage with no smarts
-- None of them work well on locked-down or borrowed machines
-
-**The real-world pain points:**
-
-- At a coffee shop, you can't safely log in — keyloggers, security cameras, compromised machines
-- At a border crossing, you might be forced to unlock your devices
-- At work, USB storage is blocked, but you still need your credentials
-- Your backup strategy is "hope nothing breaks"
-
-**KeyMaster solves this** by being a single, open, trustworthy device that adapts to any environment while keeping your secrets under your physical control.
+**KeyMaster is a single, open, trustworthy device that keeps every secret under your physical control and adapts to any environment.**
 
 ---
 
