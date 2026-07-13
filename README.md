@@ -101,7 +101,7 @@ This pattern also reinforces a healthy mental model: **KeyMasters are fungible p
 
 ## What It Will Take to Build
 
-KeyMaster is at the design stage. Turning it into a shipping product is a serious, multi-year hardware effort, and we would rather state its real scale than understate it.
+KeyMaster is at the design stage. Turning it into a shipping product is a significant, multi-year hardware effort.
 
 A realistic path to a shipping v1 is roughly **\$4–7M over 24–36 months**: a dual-processor secure device carried through prototype, design-for-manufacture, baseline certification (FCC, CE, FIDO2), and a first production run. A lean effort that blends offshore talent and defers heavy certification could reach a pilot for around \$2–3.5M. Pursuing government-grade device certification (FIPS 140-3, Common Criteria) for v1 pushes the ceiling toward \$8–12M and adds one to two years of certification queue, which is why we treat it as a later milestone rather than a v1 gate.
 
@@ -113,7 +113,7 @@ We de-risk deliberately:
 - **Ship on self-certification.** v1 targets FCC and CE self-declaration (no radio, so no costly RF path) plus FIDO2, with FIPS 140-3 and Common Criteria as funded fast-follows.
 - **Honest about the risks.** The dominant ones are certification timelines, the depth of two full firmware stacks, and the economics of a machined-metal device sold as a pair. These are laid out in the [engineering brief](docs/engagement.md) and the [hardware spec](docs/specs/hardware.md).
 
-Hardware budgets are famously optimistic; these figures already carry contingency, and the specifications behind them are detailed enough for an engineering firm to quote against rather than guess.
+Hardware budgets tend to run over, so these figures carry contingency, and the specifications behind them are detailed enough for an engineering firm to quote against rather than guess.
 
 **What it might sell for.** Early unit economics are rough but worth stating. A small Linux computer plus a security core, an e-paper display, a keypad, and a machined-metal shell carries a premium bill of materials, roughly **\$100–180 per device** to build at low volume. At the usual direct-to-consumer hardware markup (about 2.5–3× cost), and given the sold-in-pairs model, that points to a launch price around a **\$500–900 pair** (~\$300–500 per device). At real production volume, component pricing, a cheaper enclosure process, and amortized tooling could bring that toward a **\$300–500 pair**. This is a premium price point, closer to a mid-range phone than a \$50 token; the market comps say the willingness-to-pay exists in this range (people fund \$800 privacy phones and buy \$280 hardware wallets), but it has to be earned by the integration story, one device that replaces a wallet, a security key, a password manager, and an authenticator, with a backup already in the box. Validating that willingness-to-pay early is a standing priority.
 
