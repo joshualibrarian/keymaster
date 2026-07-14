@@ -108,6 +108,8 @@ A realistic path to a shipping v1 is roughly **\$4–7M over 24–36 months**: a
 
 **The near-term ask:** a seed raise toward the **\$4–6M** range funds the path to a self-certified v1 pilot. The fully certified, at-scale product realistically spans a seed round plus a Series A.
 
+**Production funding:** once development reaches a manufacturable prototype, crowdfunding pre-orders (a natural fit for open hardware, via a platform like Crowd Supply) can fund the first production run and validate demand, complementing the equity raise rather than replacing it.
+
 We de-risk deliberately:
 
 - **Inherited assurance.** KeyMaster's high-security certifications come from a pre-certified secure element, so the multi-million-dollar chip evaluation is the silicon vendor's cost, not ours.
