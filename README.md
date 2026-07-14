@@ -82,7 +82,7 @@ A compact USB-C device (~2" × 3") that draws power from whatever it's plugged i
 **Storage Options:**
 
 - Secure vault: 128-512 MB (enough for 10,000+ entries with attachments)
-- OS and tools: 8-16 GB, modern UFS flash preferred (higher-capacity on the Pro model)
+- Onboard flash: 8-16 GB for OS and tools on the base model; the Pro model uses higher-capacity UFS in the same chip footprint, up to ~1 TB
 - User storage: MicroSD up to 1 TB, plus external drives via USB-C for more
 
 ---
