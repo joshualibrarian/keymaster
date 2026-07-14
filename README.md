@@ -20,7 +20,7 @@ Our passwords, keys, and secrets are scattered across devices and services, and 
 - **Local managers** (KeePass) keep the vault on your machine, but syncing becomes your problem, the host can be compromised, and a borrowed or locked-down computer locks you out.
 - **Hardware tokens** (YubiKey, Ledger, Trezor) each do one slice, authentication or coins or keys, but none holds all of it and none adapts to an untrusted host.
 
-The result is everyday friction: you can't safely log in on a coffee-shop computer, a border agent can compel your whole digital life, work machines block the tools you need, and your backup plan is "hope nothing breaks."
+The result is everyday friction: you can't safely log in on a coffee-shop computer, a border agent can compel your whole digital life, work machines block the tools you need, and most people have no real backup strategy at all.
 
 **KeyMaster is a single, open, trustworthy device that keeps every secret under your physical control and adapts to any environment.**
 
